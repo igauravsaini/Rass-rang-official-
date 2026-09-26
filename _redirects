@@ -1,2 +1,2 @@
-/index.html  /  200
-/*            /index.html  200
+# No redirects needed for this static single-page site.
+# Cloudflare Pages automatically serves index.html at the root.
