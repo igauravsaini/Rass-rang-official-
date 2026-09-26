@@ -104,12 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
             this.opacity = Math.random() * 0.5 + 0.1;
             this.fadeSpeed = Math.random() * 0.005 + 0.002;
             this.growing = Math.random() > 0.5;
-            // Gold/saffron color palette
+            // Festive Garba color palette
             const colors = [
-                { r: 217, g: 167, b: 58 },  // Antique Gold
-                { r: 240, g: 201, b: 94 },  // Gold Light
-                { r: 255, g: 111, b: 0 },   // Saffron
-                { r: 250, g: 232, b: 176 }, // Gold Pale
+                { r: 255, g: 45, b: 120 },  // Hot Pink
+                { r: 240, g: 180, b: 41 },  // Gold
+                { r: 255, g: 107, b: 0 },   // Saffron
+                { r: 233, g: 30, b: 156 },  // Magenta
+                { r: 255, g: 213, b: 79 },  // Gold Light
+                { r: 156, g: 39, b: 176 },  // Purple
+                { r: 0, g: 191, b: 165 },   // Teal
             ];
             this.color = colors[Math.floor(Math.random() * colors.length)];
         }

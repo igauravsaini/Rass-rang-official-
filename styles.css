@@ -1,49 +1,61 @@
 /* ============================================================
-   RAAS~RANG GARBA NIGHTS 2026 — Premium Design System
+   RAAS~RANG GARBA NIGHTS 2026 — Festive Celebration Design
    ============================================================ */
 
 /* ======================== DESIGN TOKENS ======================== */
 :root {
-    /* Brand Colors — Brochure Palette */
-    --royal-navy: #081C3A;
-    --navy-deep: #04101f;
-    --navy-light: #0d2d56;
-    --deep-maroon: #6B0F1A;
-    --maroon-light: #8a1828;
-    --maroon-velvet: #5a0d16;
-    --antique-gold: #D9A441;
-    --gold-light: #F4D26A;
-    --gold-pale: #F7E8C1;
-    --gold-rich: #c8922e;
+    /* Brand Colors — Vibrant Garba Nights Palette */
+    --royal-navy: #0a0412;
+    --navy-deep: #06020d;
+    --navy-light: #1a0a2e;
+    --deep-maroon: #8B0A3A;
+    --maroon-light: #B91452;
+    --maroon-velvet: #6d0830;
+    --antique-gold: #F0B429;
+    --gold-light: #FFD54F;
+    --gold-pale: #FFF3C4;
+    --gold-rich: #E09800;
     --gold-dark: #8B6914;
-    --saffron: #E87C1E;
-    --vermillion: #C93A2A;
-    --vermillion-deep: #a0301f;
-    --cream: #F7E8C1;
+    --saffron: #FF6B00;
+    --vermillion: #E53935;
+    --vermillion-deep: #C62828;
+    --cream: #FFF3C4;
     --ivory: #fdf6e3;
+
+    /* Festive Accent Colors */
+    --hot-pink: #FF2D78;
+    --magenta: #E91E9C;
+    --electric-orange: #FF8A00;
+    --festive-purple: #9C27B0;
+    --festive-teal: #00BFA5;
+    --neon-green: #76FF03;
+    --dandiya-red: #D50000;
 
     /* Neutrals */
     --white: #ffffff;
     --gray-100: #f7f3eb;
     --gray-200: #e8dfd3;
-    --gray-300: #c4b8a8;
-    --gray-400: #8a7e70;
+    --gray-300: #d4c5b1;
+    --gray-400: #a09585;
     --gray-500: #6b6055;
     --gray-600: #4a4138;
     --text-primary: #fdf6e3;
-    --text-secondary: #c4b8a8;
-    --text-muted: #8a7e70;
+    --text-secondary: #d4c5b1;
+    --text-muted: #a09585;
 
-    /* Gradients — Brochure-matched (Pure Metallic Antique & Champagne Gold, Zero Red) */
-    --gold-gradient: linear-gradient(135deg, #D9A441 0%, #F4D26A 25%, #D9A441 50%, #c8922e 75%, #D9A441 100%);
-    --gold-emboss: linear-gradient(180deg, #FFFFFF 0%, #FFF3CF 12%, #F6DA88 28%, #DCA438 48%, #936B15 68%, #CF9E32 86%, #FFE699 100%);
-    --gold-emboss-sub: linear-gradient(180deg, #FFFFFF 0%, #FFF5DB 20%, #F4D26A 50%, #B8851B 80%, #ECC768 100%);
-    --gold-antique-rich: linear-gradient(180deg, #FFF9E6 0%, #E6BA54 40%, #A9781B 75%, #6A4B0C 100%);
-    --maroon-gradient: linear-gradient(135deg, #6B0F1A, #8a1828, #6B0F1A);
-    --maroon-velvet-bg: radial-gradient(ellipse at center, #78101E 0%, #4D0912 65%, #2A0409 100%);
-    --navy-gradient: linear-gradient(180deg, #081C3A 0%, #0d2d56 50%, #081C3A 100%);
-    --hero-overlay: linear-gradient(180deg, rgba(8,28,58,0.25) 0%, rgba(8,28,58,0.65) 40%, rgba(8,28,58,0.92) 100%);
-    --card-gradient: linear-gradient(145deg, rgba(217,164,65,0.08) 0%, rgba(107,15,26,0.05) 100%);
+    /* Gradients — Vibrant Festive */
+    --gold-gradient: linear-gradient(135deg, #F0B429 0%, #FFD54F 25%, #F0B429 50%, #E09800 75%, #F0B429 100%);
+    --gold-emboss: linear-gradient(180deg, #FFFFFF 0%, #FFF3CF 12%, #FFD54F 28%, #F0B429 48%, #A87800 68%, #E09800 86%, #FFE699 100%);
+    --gold-emboss-sub: linear-gradient(180deg, #FFFFFF 0%, #FFF5DB 20%, #FFD54F 50%, #C68A00 80%, #FFD54F 100%);
+    --gold-antique-rich: linear-gradient(180deg, #FFF9E6 0%, #FFD54F 40%, #C68A00 75%, #6A4B0C 100%);
+    --maroon-gradient: linear-gradient(135deg, #8B0A3A, #B91452, #8B0A3A);
+    --maroon-velvet-bg: radial-gradient(ellipse at center, #9C1048 0%, #5D082A 65%, #2A0412 100%);
+    --navy-gradient: linear-gradient(180deg, #0a0412 0%, #1a0a2e 50%, #0a0412 100%);
+    --hero-overlay: linear-gradient(180deg, rgba(10,4,18,0.2) 0%, rgba(10,4,18,0.6) 40%, rgba(10,4,18,0.92) 100%);
+    --card-gradient: linear-gradient(145deg, rgba(240,180,41,0.06) 0%, rgba(139,10,58,0.08) 100%);
+    --festive-gradient: linear-gradient(135deg, #FF2D78, #FF6B00, #FFD54F, #76FF03, #00BFA5, #9C27B0, #FF2D78);
+    --garba-glow: linear-gradient(135deg, #FF2D78 0%, #E91E9C 25%, #9C27B0 50%, #FF6B00 75%, #FFD54F 100%);
+    --dandiya-stripe: repeating-linear-gradient(45deg, #D50000, #D50000 8px, #F0B429 8px, #F0B429 12px, #FF2D78 12px, #FF2D78 16px, #FFD54F 16px, #FFD54F 20px);
 
     /* Spacing */
     --space-xs: 0.25rem;
@@ -70,13 +82,15 @@
     --radius-lg: 16px;
     --radius-xl: 24px;
     --radius-full: 9999px;
-    --border-gold: 1px solid rgba(217,164,65,0.3);
-    --border-gold-strong: 2px solid rgba(217,164,65,0.5);
+    --border-gold: 1px solid rgba(240,180,41,0.3);
+    --border-gold-strong: 2px solid rgba(240,180,41,0.5);
+    --border-festive: 1px solid rgba(255,45,120,0.25);
 
     /* Shadows */
-    --shadow-gold: 0 0 20px rgba(217,164,65,0.15);
-    --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
-    --shadow-elevated: 0 16px 48px rgba(0,0,0,0.4);
+    --shadow-gold: 0 0 20px rgba(240,180,41,0.2);
+    --shadow-festive: 0 0 25px rgba(255,45,120,0.15), 0 0 50px rgba(233,30,156,0.08);
+    --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
+    --shadow-elevated: 0 16px 48px rgba(0,0,0,0.5);
 
     /* Transitions */
     --transition-fast: 0.2s ease;
@@ -108,6 +122,10 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image:
+        radial-gradient(circle at 15% 25%, rgba(139,10,58,0.12) 0%, transparent 50%),
+        radial-gradient(circle at 85% 75%, rgba(156,39,176,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255,107,0,0.04) 0%, transparent 60%);
 }
 
 img {
@@ -146,7 +164,7 @@ input, textarea, select {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, #081C3A 0%, #04101F 70%, #020810 100%);
+    background: radial-gradient(circle at center, #1a0a2e 0%, #0a0412 70%, #040108 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -372,17 +390,17 @@ input, textarea, select {
 
 /* ======================== GOLD SHIMMER TEXT ======================== */
 .gold-shimmer {
-    background: linear-gradient(135deg, #D9A441 0%, #F4D26A 25%, #D9A441 50%, #c8922e 75%, #D9A441 100%);
-    background-size: 200% auto;
+    background: linear-gradient(135deg, #F0B429 0%, #FFD54F 20%, #FF6B00 40%, #FFD54F 60%, #F0B429 80%, #FFD54F 100%);
+    background-size: 300% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: shimmer 5s ease-in-out infinite;
+    animation: shimmer 4s ease-in-out infinite;
 }
 
 @keyframes shimmer {
     0%, 100% { background-position: 0% center; }
-    50% { background-position: 200% center; }
+    50% { background-position: 300% center; }
 }
 
 /* ======================== BUTTONS ======================== */
@@ -419,41 +437,45 @@ input, textarea, select {
 }
 
 .btn-primary {
-    background: var(--gold-gradient);
+    background: linear-gradient(135deg, #FF2D78, #FF6B00, #FFD54F);
     background-size: 200% auto;
-    color: var(--royal-navy);
+    color: #0a0412;
     border: none;
-    box-shadow: 0 4px 20px rgba(217,167,58,0.3);
+    box-shadow: 0 4px 20px rgba(255,45,120,0.3);
+    font-weight: 800;
 }
 
 .btn-primary:hover {
     background-position: right center;
-    box-shadow: 0 6px 30px rgba(217,167,58,0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(255,45,120,0.5), 0 0 40px rgba(255,107,0,0.2);
+    transform: translateY(-3px) scale(1.02);
 }
 
 .btn-secondary {
     background: var(--maroon-gradient);
     color: var(--cream);
-    border: var(--border-gold);
-    box-shadow: 0 4px 20px rgba(92,10,29,0.3);
+    border: 1px solid rgba(255,45,120,0.4);
+    box-shadow: 0 4px 20px rgba(139,10,58,0.3);
 }
 
 .btn-secondary:hover {
-    box-shadow: 0 6px 30px rgba(92,10,29,0.5), 0 0 15px rgba(217,167,58,0.2);
+    box-shadow: 0 6px 30px rgba(139,10,58,0.5), 0 0 20px rgba(255,45,120,0.2);
     transform: translateY(-2px);
+    border-color: var(--hot-pink);
 }
 
 .btn-outline {
     background: transparent;
     color: var(--antique-gold);
-    border: var(--border-gold-strong);
+    border: 2px solid rgba(255,45,120,0.35);
 }
 
 .btn-outline:hover {
-    background: rgba(217,167,58,0.1);
-    box-shadow: var(--shadow-gold);
+    background: rgba(255,45,120,0.08);
+    box-shadow: 0 0 25px rgba(255,45,120,0.15);
     transform: translateY(-2px);
+    border-color: var(--hot-pink);
+    color: var(--hot-pink);
 }
 
 .btn-sm {
@@ -473,12 +495,12 @@ input, textarea, select {
 }
 
 .navbar.scrolled {
-    background: rgba(7, 26, 54, 0.95);
+    background: rgba(10, 4, 18, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(217,167,58,0.15);
+    border-bottom: 1px solid rgba(255,45,120,0.15);
     padding: 10px 0;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.4), 0 1px 0 rgba(240,180,41,0.1);
 }
 
 .nav-container {
@@ -562,23 +584,24 @@ input, textarea, select {
     font-size: 0.8rem;
     font-weight: 700;
     font-family: 'Cinzel', serif;
-    background: var(--maroon-gradient);
-    color: var(--gold-light);
-    border: 1px solid var(--antique-gold);
+    background: linear-gradient(135deg, #FF2D78, #FF6B00);
+    color: #fff;
+    border: 1px solid rgba(255,45,120,0.5);
     border-radius: var(--radius-full);
     transition: all var(--transition-base);
     text-transform: uppercase;
     letter-spacing: 1.5px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 0 15px rgba(255,45,120,0.2);
 }
 
 .nav-cta-btn:hover {
-    background: var(--gold-gradient);
+    background: linear-gradient(135deg, #FFD54F, #FF6B00, #FF2D78);
     background-size: 200% auto;
-    color: var(--royal-navy);
+    color: #0a0412;
     border-color: var(--gold-light);
-    box-shadow: 0 4px 20px rgba(217,164,65,0.4);
-    transform: translateY(-1px);
+    box-shadow: 0 4px 25px rgba(255,45,120,0.4), 0 0 40px rgba(255,107,0,0.2);
+    transform: translateY(-2px);
     text-shadow: none;
 }
 
@@ -1672,10 +1695,10 @@ input, textarea, select {
     font-weight: 600;
     letter-spacing: 4px;
     text-transform: uppercase;
-    color: var(--saffron);
+    color: var(--hot-pink);
     display: block;
     margin-bottom: var(--space-sm);
-    text-shadow: 0 0 8px rgba(232,124,30,0.2);
+    text-shadow: 0 0 12px rgba(255,45,120,0.3);
 }
 
 .section-title {
@@ -1720,6 +1743,17 @@ input, textarea, select {
 /* ======================== ABOUT ======================== */
 .about-section {
     background: var(--navy-gradient);
+    position: relative;
+}
+
+.about-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(255,45,120,0.06) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(156,39,176,0.05) 0%, transparent 40%);
+    pointer-events: none;
 }
 
 .about-intro {
@@ -1747,13 +1781,14 @@ input, textarea, select {
 }
 
 .about-card {
-    background: var(--card-gradient);
-    border: var(--border-gold);
+    background: rgba(10,4,18,0.6);
+    border: 1px solid rgba(255,45,120,0.15);
     border-radius: var(--radius-lg);
     padding: var(--space-2xl);
     transition: all var(--transition-smooth);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
 .about-card::before {
@@ -1763,20 +1798,21 @@ input, textarea, select {
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--gold-gradient);
+    background: linear-gradient(90deg, var(--hot-pink), var(--saffron), var(--antique-gold));
     background-size: 200% auto;
     opacity: 0;
     transition: opacity var(--transition-base);
 }
 
 .about-card:hover {
-    transform: translateY(-6px);
-    border-color: rgba(217,167,58,0.5);
-    box-shadow: var(--shadow-gold), var(--shadow-card);
+    transform: translateY(-8px);
+    border-color: rgba(255,45,120,0.4);
+    box-shadow: var(--shadow-festive), var(--shadow-card);
 }
 
 .about-card:hover::before {
     opacity: 1;
+    animation: shimmer 2s ease-in-out infinite;
 }
 
 .about-card-icon {
@@ -1799,61 +1835,75 @@ input, textarea, select {
 
 /* ======================== EVENTS ======================== */
 .events-section {
-    background: linear-gradient(180deg, var(--royal-navy) 0%, var(--navy-deep) 100%);
+    background: linear-gradient(180deg, var(--royal-navy) 0%, #0d0318 50%, var(--navy-deep) 100%);
+    position: relative;
+}
+
+.events-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(255,45,120,0.06) 0%, transparent 35%),
+        radial-gradient(circle at 70% 80%, rgba(255,107,0,0.05) 0%, transparent 35%);
+    pointer-events: none;
 }
 
 .events-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--space-xl);
+    position: relative;
 }
 
 .event-card {
     position: relative;
-    background: rgba(7,26,54,0.8);
-    border: var(--border-gold);
+    background: rgba(10,4,18,0.7);
+    border: 1px solid rgba(255,45,120,0.12);
     border-radius: var(--radius-lg);
     padding: var(--space-2xl);
     text-align: center;
     transition: all var(--transition-smooth);
     overflow: hidden;
     cursor: default;
+    backdrop-filter: blur(8px);
 }
 
 .event-card-glow {
     position: absolute;
     inset: -2px;
     border-radius: var(--radius-lg);
-    background: conic-gradient(from 0deg, var(--antique-gold), var(--saffron), var(--vermillion), var(--deep-maroon), var(--antique-gold));
+    background: conic-gradient(from 0deg, var(--hot-pink), var(--saffron), var(--antique-gold), var(--festive-purple), var(--magenta), var(--hot-pink));
     opacity: 0;
     transition: opacity var(--transition-base);
     z-index: -1;
-    filter: blur(6px);
+    filter: blur(8px);
 }
 
 .event-card:hover .event-card-glow {
-    opacity: 0.6;
+    opacity: 0.5;
     animation: glow-rotate 3s linear infinite;
 }
 
 @keyframes glow-rotate {
-    to { filter: blur(6px) hue-rotate(30deg); }
+    to { filter: blur(8px) hue-rotate(60deg); }
 }
 
 .event-card:hover {
-    transform: translateY(-8px);
-    border-color: rgba(217,167,58,0.6);
-    box-shadow: 0 0 30px rgba(217,167,58,0.15);
+    transform: translateY(-10px) scale(1.02);
+    border-color: rgba(255,45,120,0.5);
+    box-shadow: 0 0 35px rgba(255,45,120,0.15), 0 15px 40px rgba(0,0,0,0.3);
 }
 
 .event-card-icon {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     margin-bottom: var(--space-md);
     transition: transform var(--transition-base);
+    filter: drop-shadow(0 0 8px rgba(255,107,0,0.3));
 }
 
 .event-card:hover .event-card-icon {
-    transform: scale(1.2);
+    transform: scale(1.25) rotate(5deg);
 }
 
 .event-card h3 {
@@ -1871,7 +1921,7 @@ input, textarea, select {
 
 /* ======================== STATS ======================== */
 .stats-section {
-    background: var(--deep-maroon);
+    background: linear-gradient(135deg, #3d0720 0%, #1a0a2e 50%, #0d0318 100%);
     position: relative;
     overflow: hidden;
 }
@@ -1880,8 +1930,9 @@ input, textarea, select {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 10% 50%, rgba(217,167,58,0.1) 0%, transparent 50%),
-        radial-gradient(circle at 90% 50%, rgba(217,167,58,0.08) 0%, transparent 50%);
+        radial-gradient(circle at 10% 50%, rgba(255,45,120,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 90% 50%, rgba(240,180,41,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(156,39,176,0.06) 0%, transparent 40%);
 }
 
 .stats-grid {
@@ -1894,16 +1945,35 @@ input, textarea, select {
 .stat-card {
     text-align: center;
     padding: var(--space-2xl);
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(217,167,58,0.2);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,45,120,0.15);
     border-radius: var(--radius-lg);
     transition: all var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--hot-pink), var(--saffron), var(--antique-gold));
+    opacity: 0;
+    transition: opacity var(--transition-base);
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(217,167,58,0.4);
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,45,120,0.3);
+    box-shadow: var(--shadow-festive);
+}
+
+.stat-card:hover::after {
+    opacity: 1;
 }
 
 .stat-value,
@@ -1914,6 +1984,7 @@ input, textarea, select {
     color: var(--antique-gold);
     line-height: 1.2;
     margin-bottom: var(--space-sm);
+    text-shadow: 0 0 20px rgba(240,180,41,0.3);
 }
 
 .stat-value-text {
@@ -2028,7 +2099,18 @@ input, textarea, select {
 
 /* ======================== TICKETS ======================== */
 .tickets-section {
-    background: linear-gradient(180deg, var(--navy-deep) 0%, var(--royal-navy) 100%);
+    background: linear-gradient(180deg, var(--navy-deep) 0%, #0d0318 50%, var(--royal-navy) 100%);
+    position: relative;
+}
+
+.tickets-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(255,45,120,0.06) 0%, transparent 40%),
+        radial-gradient(circle at 30% 100%, rgba(156,39,176,0.04) 0%, transparent 35%);
+    pointer-events: none;
 }
 
 .tickets-grid {
@@ -2037,17 +2119,19 @@ input, textarea, select {
     gap: var(--space-xl);
     align-items: start;
     margin-bottom: var(--space-3xl);
+    position: relative;
 }
 
 .ticket-card {
     position: relative;
-    background: rgba(7,26,54,0.9);
-    border: var(--border-gold);
+    background: rgba(10,4,18,0.8);
+    border: 1px solid rgba(255,45,120,0.15);
     border-radius: var(--radius-xl);
     padding: var(--space-2xl);
     text-align: center;
     transition: all var(--transition-smooth);
     overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
 .ticket-card::before {
@@ -2057,26 +2141,28 @@ input, textarea, select {
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--gold-gradient);
+    background: linear-gradient(90deg, var(--hot-pink), var(--saffron), var(--antique-gold));
     background-size: 200% auto;
+    animation: shimmer 4s ease-in-out infinite;
 }
 
 .ticket-popular {
-    border: 2px solid var(--antique-gold);
+    border: 2px solid var(--hot-pink);
     transform: scale(1.03);
-    box-shadow: 0 0 40px rgba(217,167,58,0.15);
+    box-shadow: 0 0 40px rgba(255,45,120,0.12), 0 0 80px rgba(233,30,156,0.06);
 }
 
 .ticket-popular::before {
     height: 4px;
-    background: linear-gradient(90deg, var(--saffron), var(--antique-gold), var(--vermillion));
+    background: linear-gradient(90deg, var(--hot-pink), var(--magenta), var(--festive-purple), var(--saffron), var(--antique-gold));
+    background-size: 300% auto;
 }
 
 .ticket-popular-badge {
     position: absolute;
     top: 16px;
     right: -30px;
-    background: var(--saffron);
+    background: linear-gradient(135deg, #FF2D78, #E91E9C);
     color: var(--white);
     padding: 4px 40px;
     font-size: 0.75rem;
@@ -2084,15 +2170,17 @@ input, textarea, select {
     letter-spacing: 1px;
     text-transform: uppercase;
     transform: rotate(45deg);
+    box-shadow: 0 2px 10px rgba(255,45,120,0.3);
 }
 
 .ticket-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-elevated), var(--shadow-gold);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-elevated), var(--shadow-festive);
+    border-color: rgba(255,45,120,0.35);
 }
 
 .ticket-popular:hover {
-    transform: scale(1.03) translateY(-8px);
+    transform: scale(1.03) translateY(-10px);
 }
 
 .ticket-header {
@@ -2329,7 +2417,18 @@ input, textarea, select {
 
 /* ======================== SPONSORS ======================== */
 .sponsors-section {
-    background: linear-gradient(180deg, var(--royal-navy) 0%, var(--navy-deep) 50%, var(--royal-navy) 100%);
+    background: linear-gradient(180deg, var(--royal-navy) 0%, #0d0318 50%, var(--royal-navy) 100%);
+    position: relative;
+}
+
+.sponsors-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 60% 30%, rgba(255,107,0,0.04) 0%, transparent 40%),
+        radial-gradient(circle at 20% 70%, rgba(255,45,120,0.04) 0%, transparent 35%);
+    pointer-events: none;
 }
 
 .sponsors-hero {
@@ -2366,24 +2465,27 @@ input, textarea, select {
 }
 
 .sponsor-card {
-    background: rgba(7,26,54,0.9);
-    border: var(--border-gold);
+    background: rgba(10,4,18,0.7);
+    border: 1px solid rgba(255,45,120,0.12);
     border-radius: var(--radius-xl);
     padding: var(--space-2xl);
     text-align: center;
     transition: all var(--transition-smooth);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(8px);
 }
 
 .sponsor-title {
-    border: 2px solid var(--antique-gold);
-    background: linear-gradient(145deg, rgba(217,167,58,0.1) 0%, rgba(92,10,29,0.08) 100%);
+    border: 2px solid var(--hot-pink);
+    background: linear-gradient(145deg, rgba(255,45,120,0.08) 0%, rgba(156,39,176,0.06) 100%);
+    box-shadow: 0 0 30px rgba(255,45,120,0.08);
 }
 
 .sponsor-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-elevated), var(--shadow-gold);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-elevated), var(--shadow-festive);
+    border-color: rgba(255,45,120,0.3);
 }
 
 .sponsor-tier-badge {
@@ -2513,7 +2615,7 @@ input, textarea, select {
 
 /* ======================== GALLERY ======================== */
 .gallery-section {
-    background: var(--navy-deep);
+    background: linear-gradient(180deg, var(--navy-deep) 0%, #0a0215 50%, var(--navy-deep) 100%);
 }
 
 .gallery-filters {
@@ -2873,8 +2975,20 @@ input, textarea, select {
 .site-footer {
     position: relative;
     z-index: 2;
-    background: var(--navy-deep);
-    border-top: 1px solid rgba(217,167,58,0.1);
+    background: linear-gradient(180deg, #0a0215, #06020d);
+    border-top: 1px solid rgba(255,45,120,0.12);
+}
+
+.site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--hot-pink), var(--saffron), var(--antique-gold), var(--hot-pink), transparent);
+    background-size: 200% auto;
+    animation: shimmer 6s ease-in-out infinite;
 }
 
 .footer-container {
