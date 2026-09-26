@@ -1,0 +1,23 @@
+{
+  "name": "raas-rang",
+  "version": "1.0.0",
+  "description": "Raas~Rang Garba Nights 2026 - Purvanchal's Premier Navratri Cultural Showcase",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y serve -l 3000",
+    "dev": "npx -y serve -l 3000",
+    "build": "echo \"Static build complete. No compilation needed.\""
+  },
+  "keywords": [
+    "garba",
+    "navratri",
+    "raas-rang",
+    "cultural-festival",
+    "gorakhpur"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
