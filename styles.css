@@ -354,6 +354,7 @@ input, textarea, select {
     letter-spacing: 5px;
     background: var(--gold-emboss);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 12px rgba(217,164,65,0.5));
 }
@@ -1184,6 +1185,7 @@ input, textarea, select {
     color: var(--gold-pale);
     background: var(--gold-emboss-sub);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 10px rgba(244,210,106,0.3));
 }
@@ -1208,6 +1210,7 @@ input, textarea, select {
     color: var(--gold-light);
     background: linear-gradient(180deg, #FFFFFF 0%, #F5D77F 40%, #D4A034 80%, #ECC768 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: none;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
@@ -1288,6 +1291,7 @@ input, textarea, select {
 
     background: var(--gold-emboss-sub);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 
     filter:
@@ -1315,6 +1319,7 @@ input, textarea, select {
 .year-number {
     background: var(--gold-emboss);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter:
         drop-shadow(0 1px 0 #edd287)
@@ -1347,6 +1352,7 @@ input, textarea, select {
 .hindi-word {
     background: var(--gold-emboss);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 15px rgba(217,164,65,0.35));
 }
@@ -2282,6 +2288,7 @@ input, textarea, select {
     color: var(--cream);
     font-size: 0.95rem;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .qty-input::-webkit-inner-spin-button,
