@@ -1,0 +1,21 @@
+{
+  "name": "Raas~Rang Garba Nights 2026",
+  "short_name": "Raas~Rang",
+  "description": "Purvanchal's Premier Navratri Cultural Showcase & Festive Brand Expo — Gorakhpur",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0412",
+  "theme_color": "#0a0412",
+  "icons": [
+    {
+      "src": "/assets/images/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/assets/images/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

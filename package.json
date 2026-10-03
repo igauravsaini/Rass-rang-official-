@@ -2,11 +2,12 @@
   "name": "raas-rang",
   "version": "1.0.0",
   "description": "Raas~Rang Garba Nights 2026 - Purvanchal's Premier Navratri Cultural Showcase",
+  "type": "module",
   "main": "index.html",
   "scripts": {
-    "start": "npx -y serve -l 3000",
-    "dev": "npx -y serve -l 3000",
-    "build": "echo \"Static build complete. No compilation needed.\""
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "keywords": [
     "garba",
@@ -18,6 +19,28 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "serve": "^14.2.4"
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "serve": "^14.2.4",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  },
+  "dependencies": {
+    "@netlify/functions": "^6.0.2",
+    "@supabase/supabase-js": "^2.117.2",
+    "clsx": "^2.1.1",
+    "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
+    "jspdf": "^4.2.1",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "resend": "^6.32.0",
+    "tailwind-merge": "^3.7.0"
   }
 }
