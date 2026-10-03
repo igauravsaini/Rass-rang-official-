@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { VirtualTicketData } from '../../types/booking';
 
 interface VirtualTicketProps {
@@ -47,6 +45,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     if (!ticketRef.current) return;
     try {
       setDownloadingPng(true);
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(ticketRef.current, {
         scale: 2,
         backgroundColor: '#0a0412',
@@ -69,6 +68,10 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     if (!ticketRef.current) return;
     try {
       setDownloadingPdf(true);
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
       const canvas = await html2canvas(ticketRef.current, {
         scale: 2,
         backgroundColor: '#0a0412',

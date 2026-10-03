@@ -44,7 +44,7 @@ IMPORTANT INSTRUCTIONS:
 2. Complete your payment at the spot to receive your official entry pass.
 3. Event Date: 17 October 2026 at Mahant Digvijaynath Park, Gorakhpur.
 
-Need assistance? Visit https://raasranggkp.netlify.app/ or reply to this email.
+Need assistance? Visit https://raasranggkp.pages.dev/ or reply to this email.
 
 Warm regards,
 Raas~Rang Organizing Committee, Gorakhpur
