@@ -5,7 +5,6 @@ import { Card3D } from '../ui/Card3D';
 import { QuantityStepper } from '../ui/QuantityStepper';
 import { ticketPasses, ticketTerms } from '../../data/tickets';
 import { formatIndianNumber } from '../../lib/format';
-import { BookingModal } from '../booking/BookingModal';
 import { PassCode } from '../../types/booking';
 
 export const Tickets: React.FC = () => {
@@ -14,9 +13,6 @@ export const Tickets: React.FC = () => {
     'ticket-couple': 1,
     'ticket-family': 1,
   });
-
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
-  const [selectedPassType, setSelectedPassType] = useState<PassCode>('COUPLE');
 
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
@@ -31,8 +27,11 @@ export const Tickets: React.FC = () => {
     if (id === 'ticket-sigma') passCode = 'SIGMA';
     else if (id === 'ticket-family') passCode = 'FAMILY';
 
-    setSelectedPassType(passCode);
-    setBookingModalOpen(true);
+    window.dispatchEvent(
+      new CustomEvent('open-booking-modal', {
+        detail: { passType: passCode },
+      })
+    );
   };
 
   const handleApplyPromo = () => {
@@ -166,13 +165,6 @@ export const Tickets: React.FC = () => {
             </ul>
           </details>
         </Reveal>
-
-        {/* Pre-Ticket Booking Modal & Virtual Ticket Viewer */}
-        <BookingModal
-          isOpen={bookingModalOpen}
-          onClose={() => setBookingModalOpen(false)}
-          defaultPass={selectedPassType}
-        />
       </div>
     </section>
   );

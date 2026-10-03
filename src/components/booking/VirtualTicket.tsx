@@ -102,7 +102,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       `🎟️ Pass: ${ticket.passName}\n` +
       `📍 Collection Spot: ${ticket.spot}\n` +
       `Event Date: 17 Oct 2026 at Mahant Digvijaynath Park.\n` +
-      `Reserve your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.netlify.app'}/`
+      `Reserve your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.pages.dev'}/`
   );
 
   const getStatusColor = (status: string) => {
@@ -161,7 +161,11 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
           <div className="vt-detail-item">
             <span className="vt-label">Pass Category</span>
-            <span className="vt-val">{ticket.passName} ({ticket.persons} Entry)</span>
+            <span className="vt-val">
+              {/entry|person/i.test(ticket.passName || '')
+                ? ticket.passName
+                : `${ticket.passName} (${ticket.persons} Entry)`}
+            </span>
           </div>
 
           <div className="vt-detail-item">

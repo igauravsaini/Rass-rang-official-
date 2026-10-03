@@ -61,8 +61,67 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
     return () => clearTimeout(timer);
   }, [turnstileSiteKey, activeTab, isOpen]);
 
-  // Lock body scroll when modal is open
-  useLockBodyScroll(isOpen);
+  // Modal Animation & Background Blur State
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [animationState, setAnimationState] = useState<'entering' | 'entered' | 'exiting' | 'exited'>(
+    isOpen ? 'entering' : 'exited'
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsRendered(true);
+      document.body.classList.add('booking-overlay-active');
+      const raf = requestAnimationFrame(() => {
+        setAnimationState('entering');
+        const timer = setTimeout(() => {
+          setAnimationState('entered');
+        }, 300);
+        return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(raf);
+    } else if (isRendered) {
+      setAnimationState('exiting');
+      document.body.classList.remove('booking-overlay-active');
+      const timer = setTimeout(() => {
+        setAnimationState('exited');
+        setIsRendered(false);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Clean up body class on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('booking-overlay-active');
+    };
+  }, []);
+
+  const handleAnimatedClose = () => {
+    if (animationState === 'exiting') return;
+    setAnimationState('exiting');
+    document.body.classList.remove('booking-overlay-active');
+    setTimeout(() => {
+      setAnimationState('exited');
+      setIsRendered(false);
+      onClose();
+    }, 240);
+  };
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleAnimatedClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // Lock body scroll when modal is rendered
+  useLockBodyScroll(isRendered);
 
   // Restore ticket from localStorage on mount
   useEffect(() => {
@@ -248,16 +307,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
     }
   };
 
-  if (!isOpen) return null;
+  if (!isRendered) return null;
 
   return (
     <div
-      className="booking-modal-overlay"
+      className={`booking-modal-overlay ${animationState}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="booking-modal-title"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) handleAnimatedClose();
       }}
     >
       <div className="booking-modal-content">
@@ -266,7 +325,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
           type="button"
           className="booking-modal-close"
           aria-label="Close booking modal"
-          onClick={onClose}
+          onClick={handleAnimatedClose}
         >
           &times;
         </button>
@@ -281,7 +340,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
               setMobile('');
               setEmail('');
             }}
-            onClose={onClose}
+            onClose={handleAnimatedClose}
           />
         ) : (
           /* Render Forms (Pre-Book or Find My Ticket) */

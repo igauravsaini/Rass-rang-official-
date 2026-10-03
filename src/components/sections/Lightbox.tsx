@@ -77,6 +77,7 @@ export const Lightbox: React.FC<LightboxProps> = ({ isOpen, item, onClose, onPre
         alt={item.alt}
         className="lightbox-img"
         id="lightbox-img"
+        decoding="async"
       />
 
       <div className="lightbox-caption" id="lightbox-caption">

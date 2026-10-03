@@ -29,6 +29,7 @@ export const Footer: React.FC = () => {
               width={60}
               height={60}
               loading="lazy"
+              decoding="async"
             />
             <h3 className="footer-brand-name gold-shimmer">{siteConfig.name}</h3>
             <p className="footer-tagline">Dance &bull; Devotion &bull; Togetherness</p>

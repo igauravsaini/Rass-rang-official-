@@ -398,7 +398,14 @@ export const Hero: React.FC = () => {
             href="#tickets"
             className="btn btn-primary"
             id="hero-book-tickets"
-            onClick={(e) => handleSmoothScroll(e, '#tickets')}
+            onClick={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(
+                new CustomEvent('open-booking-modal', {
+                  detail: { passType: 'COUPLE' },
+                })
+              );
+            }}
           >
             Book Tickets
           </a>

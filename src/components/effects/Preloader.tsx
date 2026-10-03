@@ -53,18 +53,42 @@ export const Preloader: React.FC = () => {
       }
     };
 
+    // Session check for Easy Load: skip long animation if seen in this session
+    const alreadySeen = typeof window !== 'undefined' && sessionStorage.getItem('raas_intro_seen');
+    const introDuration = alreadySeen ? 350 : 1400;
+
     playTempleBell();
 
-    const timer = setTimeout(() => {
+    const finishLoading = () => {
       setIsLoaded(true);
-    }, 3400);
+      try {
+        sessionStorage.setItem('raas_intro_seen', '1');
+      } catch {
+        // Ignore private browsing storage restriction
+      }
+    };
 
-    const failsafe = setTimeout(() => {
-      setIsLoaded(true);
-    }, 4200);
+    // When the window is fully loaded, dismiss gracefully after aesthetic intro
+    const handleWindowLoad = () => {
+      setTimeout(finishLoading, introDuration);
+    };
+
+    if (document.readyState === 'complete') {
+      setTimeout(finishLoading, introDuration);
+    } else {
+      window.addEventListener('load', handleWindowLoad, { once: true });
+    }
+
+    // Failsafe timer (reduced from 4.2s to 2.2s for snappy experience)
+    const failsafe = setTimeout(finishLoading, alreadySeen ? 500 : 2200);
+
+    // Tap/Click/Key to skip immediately (Easy Load)
+    const handleQuickSkip = () => finishLoading();
+    window.addEventListener('keydown', handleQuickSkip, { once: true });
 
     return () => {
-      clearTimeout(timer);
+      window.removeEventListener('load', handleWindowLoad);
+      window.removeEventListener('keydown', handleQuickSkip);
       clearTimeout(failsafe);
     };
   }, []);
@@ -75,6 +99,8 @@ export const Preloader: React.FC = () => {
       className={`cinematic-loader ${isLoaded ? 'loaded' : ''}`.trim()}
       aria-label="Loading Raas Rang Garba Nights 2026"
       role="status"
+      onClick={() => setIsLoaded(true)}
+      style={{ cursor: isLoaded ? 'default' : 'pointer' }}
     >
       <div className="loader-bg-overlay"></div>
       <div className="loader-particles" id="loader-particles"></div>
@@ -90,6 +116,8 @@ export const Preloader: React.FC = () => {
             className="loader-logo"
             width={120}
             height={120}
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="loader-logo-ring"></div>
         </div>
@@ -101,6 +129,9 @@ export const Preloader: React.FC = () => {
           <span className="loader-motto-flourish" aria-hidden="true">
             ❧
           </span>
+        </div>
+        <div className="loader-skip-hint" style={{ marginTop: '1.2rem', fontSize: '0.75rem', opacity: 0.5, letterSpacing: '1px', textTransform: 'uppercase', color: '#f4d26a' }}>
+          Tap anywhere to skip
         </div>
       </div>
     </div>

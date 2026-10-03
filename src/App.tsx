@@ -21,14 +21,46 @@ const AdminScanner = lazy(() =>
   import('./components/admin/AdminScanner').then((m) => ({ default: m.AdminScanner }))
 );
 
+import { BookingModal } from './components/booking/BookingModal';
+import { PassCode } from './types/booking';
+
 export const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedPass, setSelectedPass] = useState<PassCode>('COUPLE');
 
   useEffect(() => {
     const handlePopState = () => setCurrentPath(window.location.pathname);
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Listen for global Book Now triggers (Navbar, Hero, Tickets section, etc.)
+  useEffect(() => {
+    const handleOpenBooking = (e: Event) => {
+      const customEvent = e as CustomEvent<{ passType?: PassCode }>;
+      const pass = customEvent.detail?.passType || 'COUPLE';
+      setSelectedPass(pass);
+      setBookingOpen(true);
+    };
+
+    window.addEventListener('open-booking-modal', handleOpenBooking);
+    return () => window.removeEventListener('open-booking-modal', handleOpenBooking);
+  }, []);
+
+  // Always start from Home (top of page) on fresh load / reload
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    if (!currentPath.startsWith('/admin')) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      // If refreshed with an anchor hash, reset so user always experiences the Hero first
+      if (window.location.hash && window.location.hash !== '#home') {
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }, [currentPath]);
 
   // Separate Admin & Scanner Routes
   if (currentPath === '/admin/scan' || currentPath === '/admin/scan/') {
@@ -73,6 +105,13 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <Footer />
+
+      {/* Global Booking Overlay Modal with Background Blur */}
+      <BookingModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        defaultPass={selectedPass}
+      />
     </>
   );
 };

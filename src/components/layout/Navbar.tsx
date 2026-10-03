@@ -107,7 +107,15 @@ export const Navbar: React.FC = () => {
               <a
                 href="#tickets"
                 className="nav-cta-btn"
-                onClick={(e) => handleNavClick(e, '#tickets')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  closeMobileMenu();
+                  window.dispatchEvent(
+                    new CustomEvent('open-booking-modal', {
+                      detail: { passType: 'COUPLE' },
+                    })
+                  );
+                }}
               >
                 Book Now
               </a>
