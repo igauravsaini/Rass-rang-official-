@@ -14,9 +14,6 @@ export const Tickets: React.FC = () => {
     'ticket-family': 1,
   });
 
-  const [promoCode, setPromoCode] = useState('');
-  const [promoApplied, setPromoApplied] = useState(false);
-
   const handleQtyChange = (id: string, val: number) => {
     setQuantities((prev) => ({ ...prev, [id]: val }));
   };
@@ -32,15 +29,6 @@ export const Tickets: React.FC = () => {
         detail: { passType: passCode },
       })
     );
-  };
-
-  const handleApplyPromo = () => {
-    if (promoCode.trim()) {
-      setPromoApplied(true);
-      setTimeout(() => {
-        setPromoApplied(false);
-      }, 3000);
-    }
   };
 
   return (
@@ -112,48 +100,6 @@ export const Tickets: React.FC = () => {
             );
           })}
         </div>
-
-        <Reveal direction="up" className="ticket-extras">
-          <div className="promo-code-section">
-            <label htmlFor="promo-code-input">Have a Promo Code?</label>
-            <div className="promo-input-group">
-              <input
-                type="text"
-                id="promo-code-input"
-                placeholder="Enter promo code"
-                className="promo-input"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-              />
-              <button
-                type="button"
-                className="btn btn-secondary promo-apply-btn"
-                id="promo-apply"
-                onClick={handleApplyPromo}
-                style={
-                  promoApplied
-                    ? {
-                        background: 'linear-gradient(135deg, #2ecc71, #27ae60)',
-                        border: '1px solid #2ecc71',
-                      }
-                    : undefined
-                }
-              >
-                {promoApplied ? 'Applied ✓' : 'Apply'}
-              </button>
-            </div>
-          </div>
-
-          <div className="payment-info">
-            <div className="qr-placeholder">
-              <div className="qr-icon" aria-hidden="true">
-                📱
-              </div>
-              <p>Scan to Pay via UPI</p>
-              <span className="qr-note">QR payment available at checkout</span>
-            </div>
-          </div>
-        </Reveal>
 
         <Reveal direction="up" className="ticket-terms">
           <details>
