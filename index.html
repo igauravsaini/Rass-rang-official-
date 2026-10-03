@@ -99,8 +99,10 @@
         }
       ]
     }
-    <!-- Cloudflare Turnstile Verification API -->
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  </script>
+
+  <!-- Cloudflare Turnstile Verification API -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 
 <body>
@@ -109,21 +111,6 @@
 
   <!-- React Application Root -->
   <div id="root"></div>
-
-  <!-- Hidden Netlify Form detection for React builds -->
-  <form name="contact" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
-    <input type="text" name="name" />
-    <input type="email" name="email" />
-    <input type="tel" name="phone" />
-    <select name="subject">
-      <option value="tickets">Ticket Enquiry</option>
-      <option value="sponsorship">Sponsorship Partnership</option>
-      <option value="stall">Food / Stall Booking</option>
-      <option value="media">Media & Press</option>
-      <option value="general">General Enquiry</option>
-    </select>
-    <textarea name="message"></textarea>
-  </form>
 
   <script type="module" src="/src/main.tsx"></script>
 </body>

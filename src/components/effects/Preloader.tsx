@@ -85,7 +85,7 @@ export const Preloader: React.FC = () => {
         </div>
         <div className="loader-logo-wrap">
           <img
-            src="assets/images/logo.jpg"
+            src="/assets/images/logo.jpg"
             alt="Raas Rang Official Emblem"
             className="loader-logo"
             width={120}

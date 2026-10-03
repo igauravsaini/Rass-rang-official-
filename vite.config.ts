@@ -226,6 +226,32 @@ function devApiMiddleware(): Plugin {
           });
         }
 
+        // 6. PATCH /api/admin-bookings
+        if (req.method === 'PATCH' && url === '/api/admin-bookings') {
+          getBody().then((body) => {
+            const ticketNo = (body.ticketNo || '').trim().toUpperCase();
+            const newStatus = body.status;
+            const found = localBookings.find((b) => b.ticket_no === ticketNo);
+            if (!found) {
+              return sendJson(404, { success: false, error: 'Booking not found.' });
+            }
+            if (found.status === 'CHECKED_IN') {
+              return sendJson(400, { success: false, error: 'Cannot modify a pass that has already been CHECKED_IN.' });
+            }
+            found.status = newStatus;
+            if (newStatus === 'COLLECTED') {
+              found.collected_at = new Date().toISOString();
+              found.payment_status = 'PAID';
+            }
+            return sendJson(200, {
+              success: true,
+              message: `Ticket status successfully changed to ${newStatus}.`,
+              booking: found,
+            });
+          });
+          return;
+        }
+
         next();
   };
 

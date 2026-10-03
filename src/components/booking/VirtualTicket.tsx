@@ -99,7 +99,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       `🎟️ Pass: ${ticket.passName}\n` +
       `📍 Collection Spot: ${ticket.spot}\n` +
       `Event Date: 17 Oct 2026 at Mahant Digvijaynath Park.\n` +
-      `Reserve your ticket here: https://raasranggkp.netlify.app/`
+      `Reserve your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.netlify.app'}/`
   );
 
   const getStatusColor = (status: string) => {

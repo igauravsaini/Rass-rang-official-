@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
         <div className="footer-main">
           <div className="footer-brand">
             <img
-              src="assets/images/logo.jpg"
+              src="/assets/images/logo.jpg"
               alt="Raas Rang Logo"
               className="footer-logo-img"
               width={60}

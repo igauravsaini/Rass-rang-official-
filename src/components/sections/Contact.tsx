@@ -109,17 +109,8 @@ export const Contact: React.FC = () => {
               className="contact-form"
               aria-label="Contact form"
               name="contact"
-              method="POST"
-              data-netlify="true"
-              data-netlify-honeypot="bot-field"
               onSubmit={handleSubmit}
             >
-              <input type="hidden" name="form-name" value="contact" />
-              <div hidden>
-                <label>
-                  Don't fill this out if you're human: <input name="bot-field" />
-                </label>
-              </div>
 
               <div className="form-group">
                 <label htmlFor="contact-name">Full Name</label>
