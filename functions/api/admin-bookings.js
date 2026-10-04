@@ -1,4 +1,3 @@
-```javascript
 import { getDb } from '../_lib/db.js';
 import { authenticateRequest } from '../_lib/auth.js';
 
@@ -389,4 +388,4 @@ export async function onRequestPatch(context) {
     context.request
   );
 }
-```
+
