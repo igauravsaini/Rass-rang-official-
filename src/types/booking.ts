@@ -1,6 +1,6 @@
 export type PassCode = 'SIGMA' | 'COUPLE' | 'FAMILY';
 
-export type TicketStatus = 'PRE_BOOKED' | 'COLLECTED' | 'CHECKED_IN' | 'CANCELLED';
+export type TicketStatus = 'PRE_BOOKED' | 'ISSUED' | 'COLLECTED' | 'CHECKED_IN' | 'CANCELLED';
 
 export type PaymentStatus = 'PENDING' | 'PAID' | 'REFUNDED';
 

@@ -194,20 +194,22 @@ export async function onRequestPost(context) {
       );
     }
 
+    const isOnline = body.passMode === 'online';
     const finalTicket = {
       ticketNo: bookingResult.ticket_no,
       name,
       mobileMasked: maskMobile(mobile),
       passType: passRecord.code,
-      passName: passRecord.label,
+      passName: isOnline ? `${passRecord.label} (Online Pass)` : `${passRecord.label} (Offline Pass)`,
+      passMode: isOnline ? 'ONLINE' : 'OFFLINE',
       persons: passRecord.persons,
       price: passRecord.price,
-      spot: spotRecord.name,
-      spotAddress: spotRecord.address,
+      spot: isOnline ? 'Direct Gate Entry (Mahant Digvijaynath Park)' : spotRecord.name,
+      spotAddress: isOnline ? 'Mahant Digvijaynath Park, Ramgarh Tal Rd, Gorakhpur' : spotRecord.address,
       spotCity: spotRecord.city,
       spotTimings: spotRecord.timings,
       spotContact: `${spotRecord.contact_person} (${spotRecord.contact_phone})`,
-      status: 'PRE_BOOKED',
+      status: isOnline ? 'ISSUED' : 'PRE_BOOKED',
       createdAt: bookingResult.created_at,
     };
 
