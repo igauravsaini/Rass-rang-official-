@@ -1,216 +1,189 @@
 import { getDb } from '../_lib/db.js';
 import { authenticateRequest } from '../_lib/auth.js';
 
-export async function onRequestGet(context) {
-  const req = context.request;
-  const env = context.env;
+const JSON_HEADERS = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Cache-Control': 'no-store',
+};
 
-  const auth = authenticateRequest(req, env);
-  if (!auth.isAuthorized) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Unauthorized: Admin or Volunteer API key required.' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    );
+function json(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+}
+
+function csvCell(value) {
+  let text = value == null ? '' : String(value);
+  // Prevent spreadsheet formula execution when an exported value begins with a formula marker.
+  if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function cleanSearch(value) {
+  // Keep common ticket/name/mobile/email characters; remove Supabase filter syntax.
+  return String(value || '').trim().replace(/[(),\\]/g, ' ').replace(/\s+/g, ' ').slice(0, 100);
+}
+
+export async function onRequestOptions() {
+  return new Response(null, { status: 204, headers: JSON_HEADERS });
+}
+
+export async function onRequestGet(context) {
+  const { request, env } = context;
+  const auth = authenticateRequest(request, env);
+
+  if (!auth.isAuthorized || auth.role !== 'admin') {
+    return json({ success: false, error: 'Admin authorization required.' }, 401);
   }
 
-  const supabase = getDb(env);
-
   try {
-    const url = new URL(req.url);
-    const search = url.searchParams.get('search')?.trim();
-    const passCode = url.searchParams.get('pass')?.trim();
-    const spotId = url.searchParams.get('spot')?.trim();
-    const status = url.searchParams.get('status')?.trim();
+    const url = new URL(request.url);
+    const search = cleanSearch(url.searchParams.get('search'));
+    const passFilter = (url.searchParams.get('pass') || '').trim();
+    const spotFilter = (url.searchParams.get('spot') || '').trim();
+    const status = (url.searchParams.get('status') || '').trim().toUpperCase();
     const isExport = url.searchParams.get('export') === 'csv';
 
+    const allowedStatuses = new Set(['PRE_BOOKED', 'COLLECTED', 'CHECKED_IN', 'CANCELLED']);
+    if (status && status !== 'ALL' && !allowedStatuses.has(status)) {
+      return json({ success: false, error: 'Invalid booking status filter.' }, 400);
+    }
+
+    const page = Math.max(1, Math.min(100000, Number.parseInt(url.searchParams.get('page') || '1', 10) || 1));
+    const requestedLimit = Number.parseInt(url.searchParams.get('limit') || '100', 10) || 100;
+    const limit = Math.max(1, Math.min(isExport ? 5000 : 100, requestedLimit));
+
+    const supabase = getDb(env);
     let query = supabase
       .from('bookings')
       .select(`
         id,
-        ticket_no,
-        name,
+        ticket_code,
+        pass_id,
+        spot_id,
+        customer_name,
         mobile,
         email,
+        quantity,
+        unit_price,
+        total_amount,
         status,
         payment_status,
+        payment_method,
+        payment_verified_at,
         created_at,
-        collected_at,
-        checked_in_at,
-        ip_address,
-        passes ( id, code, label, persons, price ),
-        spots ( id, name, address, city )
-      `)
+        updated_at,
+        passes ( id, pass_code, pass_name, description, price, quota ),
+        spots ( id, spot_code, spot_name, address, city )
+      `, { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (search) {
-      query = query.or(`ticket_no.ilike.%${search}%,name.ilike.%${search}%,mobile.ilike.%${search}%`);
-    }
-
-    if (passCode && passCode !== 'ALL') {
-      const { data: matchedPass } = await supabase.from('passes').select('id').eq('code', passCode).maybeSingle();
-      if (matchedPass) {
-        query = query.eq('pass_id', matchedPass.id);
+      const term = search.replace(/[%_]/g, '');
+      if (term) {
+        query = query.or(
+          `ticket_code.ilike.%${term}%,customer_name.ilike.%${term}%,mobile.ilike.%${term}%,email.ilike.%${term}%`
+        );
       }
     }
 
-    if (spotId && spotId !== 'ALL') {
-      query = query.eq('spot_id', parseInt(spotId, 10));
+    if (passFilter && passFilter !== 'ALL') {
+      // Accept either the current pass UUID or its public pass_code.
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      let passId = passFilter;
+      if (!uuidPattern.test(passFilter)) {
+        const { data: matchedPass, error: passError } = await supabase
+          .from('passes')
+          .select('id')
+          .eq('pass_code', passFilter)
+          .maybeSingle();
+        if (passError) throw passError;
+        if (!matchedPass) {
+          return json({ success: true, bookings: [], stats: { total: 0, perStatus: {}, perPass: {}, perSpot: {} }, page, limit, total: 0, totalPages: 0 });
+        }
+        passId = matchedPass.id;
+      }
+      query = query.eq('pass_id', passId);
     }
 
-    if (status && status !== 'ALL') {
-      query = query.eq('status', status);
+    if (spotFilter && spotFilter !== 'ALL') {
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidPattern.test(spotFilter)) {
+        return json({ success: false, error: 'Spot filter must be a valid spot UUID.' }, 400);
+      }
+      query = query.eq('spot_id', spotFilter);
     }
 
-    const { data: bookings, error } = await query;
+    if (status && status !== 'ALL') query = query.eq('status', status);
+
+    const from = isExport ? 0 : (page - 1) * limit;
+    const to = from + limit - 1;
+    const { data: bookings, error, count } = await query.range(from, to);
     if (error) throw error;
 
-    if (isExport) {
-      const header = ['Ticket No', 'Attendee Name', 'Mobile', 'Email', 'Pass Code', 'Pass Name', 'Persons', 'Price (INR)', 'Spot Name', 'Status', 'Payment', 'Created At', 'Collected At', 'Checked In At'];
-      const rows = (bookings || []).map((b) => [
-        `"${b.ticket_no}"`,
-        `"${(b.name || '').replace(/"/g, '""')}"`,
-        `"${b.mobile}"`,
-        `"${b.email}"`,
-        `"${b.passes?.code || ''}"`,
-        `"${b.passes?.label || ''}"`,
-        b.passes?.persons || 1,
-        b.passes?.price || 0,
-        `"${(b.spots?.name || '').replace(/"/g, '""')}"`,
-        `"${b.status}"`,
-        `"${b.payment_status}"`,
-        `"${b.created_at || ''}"`,
-        `"${b.collected_at || ''}"`,
-        `"${b.checked_in_at || ''}"`,
-      ]);
-
-      const csvContent = [header.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
-
-      return new Response(csvContent, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="raas_rang_bookings_${new Date().toISOString().slice(0, 10)}.csv"`,
-        },
-      });
-    }
-
-    const total = (bookings || []).length;
+    const rows = bookings || [];
     const perStatus = { PRE_BOOKED: 0, COLLECTED: 0, CHECKED_IN: 0, CANCELLED: 0 };
     const perPass = {};
     const perSpot = {};
 
-    for (const b of (bookings || [])) {
-      perStatus[b.status] = (perStatus[b.status] || 0) + 1;
-      const pCode = b.passes?.code || 'UNKNOWN';
-      perPass[pCode] = (perPass[pCode] || 0) + 1;
-      const sName = b.spots?.name || 'Unassigned';
-      perSpot[sName] = (perSpot[sName] || 0) + 1;
+    for (const booking of rows) {
+      perStatus[booking.status] = (perStatus[booking.status] || 0) + 1;
+      const passCode = booking.passes?.pass_code || 'UNKNOWN';
+      const spotName = booking.spots?.spot_name || 'Unassigned';
+      perPass[passCode] = (perPass[passCode] || 0) + 1;
+      perSpot[spotName] = (perSpot[spotName] || 0) + 1;
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        bookings: bookings || [],
-        stats: {
-          total,
-          perStatus,
-          perPass,
-          perSpot,
+    if (isExport) {
+      const header = [
+        'Ticket Code', 'Customer Name', 'Mobile', 'Email', 'Pass Code',
+        'Pass Name', 'Quantity', 'Unit Price (INR)', 'Total Amount (INR)',
+        'Spot Code', 'Spot Name', 'Status', 'Payment Status', 'Payment Method',
+        'Payment Verified At', 'Created At',
+      ];
+      const csvRows = rows.map((b) => [
+        b.ticket_code, b.customer_name, b.mobile, b.email,
+        b.passes?.pass_code, b.passes?.pass_name, b.quantity,
+        b.unit_price, b.total_amount, b.spots?.spot_code,
+        b.spots?.spot_name, b.status, b.payment_status, b.payment_method,
+        b.payment_verified_at, b.created_at,
+      ].map(csvCell).join(','));
+
+      return new Response([header.map(csvCell).join(','), ...csvRows].join('\r\n'), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="raas_rang_bookings_${new Date().toISOString().slice(0, 10)}.csv"`,
+          'Cache-Control': 'no-store',
         },
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (err) {
-    console.error('[Cloudflare Pages admin-bookings GET] Error:', err);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to retrieve bookings.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+      });
+    }
+
+    return json({
+      success: true,
+      bookings: rows,
+      stats: {
+        // Status/pass/spot breakdowns describe this returned page; total is the full filtered count.
+        total: count ?? rows.length,
+        pageCount: rows.length,
+        perStatus,
+        perPass,
+        perSpot,
+      },
+      page,
+      limit,
+      total: count ?? rows.length,
+      totalPages: Math.ceil((count ?? rows.length) / limit),
+    });
+  } catch (error) {
+    console.error('[admin-bookings GET] Failed:', error?.message || error);
+    return json({ success: false, error: 'Failed to retrieve bookings.' }, 500);
   }
 }
 
-export async function onRequestPatch(context) {
-  const req = context.request;
-  const env = context.env;
-
-  const auth = authenticateRequest(req, env);
-  if (!auth.isAuthorized) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Unauthorized: Admin or Volunteer API key required.' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
-  const supabase = getDb(env);
-
-  try {
-    const body = await req.json();
-    const ticketNo = body?.ticketNo ? String(body.ticketNo).trim().toUpperCase() : '';
-    const newStatus = body?.status;
-    const updatedBy = auth.role === 'admin' ? 'Admin' : 'Volunteer';
-
-    if (!ticketNo || !['COLLECTED', 'CANCELLED'].includes(newStatus)) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Valid ticket number and target status (COLLECTED or CANCELLED) are required.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { data: current, error: findErr } = await supabase
-      .from('bookings')
-      .select('id, ticket_no, status')
-      .eq('ticket_no', ticketNo)
-      .maybeSingle();
-
-    if (findErr || !current) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Booking not found.' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (current.status === 'CHECKED_IN') {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Cannot modify a pass that has already been CHECKED_IN.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const updateData = { status: newStatus };
-    if (newStatus === 'COLLECTED') {
-      updateData.collected_at = new Date().toISOString();
-      updateData.payment_status = 'PAID';
-    }
-
-    const { data: updated, error: updateErr } = await supabase
-      .from('bookings')
-      .update(updateData)
-      .eq('id', current.id)
-      .select()
-      .single();
-
-    if (updateErr) throw updateErr;
-
-    await supabase.from('scan_logs').insert({
-      booking_id: current.id,
-      action: `STATUS_CHANGED_TO_${newStatus}`,
-      scanned_by: updatedBy,
-      scanned_at: new Date().toISOString(),
-    });
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Ticket status successfully changed to ${newStatus}.`,
-        booking: updated,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  } catch (err) {
-    console.error('[Cloudflare Pages admin-bookings PATCH] Error:', err);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Failed to update ticket status.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+// Mutations are intentionally disabled until the admin workflow is wired to the
+// database's verified payment/collection RPCs. This prevents direct, unsafe status edits.
+export async function onRequestPatch() {
+  return json({
+    success: false,
+    error: 'Booking updates are temporarily disabled. Use the verified payment and ticket workflow.',
+  }, 405);
 }
