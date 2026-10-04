@@ -111,6 +111,7 @@ export const App: React.FC = () => {
         isOpen={bookingOpen}
         onClose={() => setBookingOpen(false)}
         defaultPass={selectedPass}
+        defaultMode={selectedMode}
       />
     </>
   );

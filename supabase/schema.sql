@@ -182,8 +182,5 @@ SET
 
 INSERT INTO public.spots (name, address, city, contact_person, contact_phone, timings, is_active)
 VALUES
-    ('Mahant Digvijaynath Park Gate Counter', 'Mahant Digvijaynath Park, Ramgarh Tal Rd', 'Gorakhpur', 'Ravi Verma (Festival In-charge)', '9876543210', '10:00 AM – 08:00 PM (Daily)', true),
-    ('Golghar City Center Collection Desk', 'Shop 14, Commercial Complex, Golghar Main Market', 'Gorakhpur', 'Amit Srivastava', '9876543211', '11:00 AM – 07:30 PM (Mon-Sat)', true),
-    ('Medical College Road Desk', 'Near BRD Medical College Gate 1, Asuran Chowk', 'Gorakhpur', 'Pooja Tiwari', '9876543212', '10:30 AM – 07:00 PM (Daily)', true),
-    ('Rapti Nagar Outreach Center', 'Sector 4 Community Hub, Rapti Nagar Phase 2', 'Gorakhpur', 'Kunal Singh', '9876543213', '11:00 AM – 06:30 PM (Daily)', true)
+    ('Caha Gorakhpur', 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017', 'Gorakhpur', 'Festival Desk', '9876543210', '10:00 AM – 08:00 PM (Daily)', true)
 ON CONFLICT DO NOTHING;

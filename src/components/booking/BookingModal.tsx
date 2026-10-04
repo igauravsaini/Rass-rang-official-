@@ -8,10 +8,16 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultPass?: PassCode;
+  defaultMode?: 'online' | 'offline';
 }
 
-export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, defaultPass = 'COUPLE' }) => {
-  const [activeTab, setActiveTab] = useState<'book' | 'lookup'>('book');
+export const BookingModal: React.FC<BookingModalProps> = ({
+  isOpen,
+  onClose,
+  defaultPass = 'COUPLE',
+  defaultMode = 'online',
+}) => {
+  const [activeTab, setActiveTab] = useState<'online' | 'offline' | 'lookup'>(defaultMode || 'online');
 
   // Config data loaded from backend
   const [passes, setPasses] = useState<PassItem[]>([]);
@@ -43,9 +49,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
   // Completed or Restored Ticket
   const [activeTicket, setActiveTicket] = useState<VirtualTicketData | null>(null);
 
+  // Sync mode when defaultMode or modal open changes
+  useEffect(() => {
+    if (isOpen && defaultMode) {
+      setActiveTab(defaultMode);
+    }
+  }, [isOpen, defaultMode]);
+
   // Render Turnstile when available
   useEffect(() => {
-    if (!turnstileSiteKey || !turnstileRef.current || activeTab !== 'book') return;
+    if (!turnstileSiteKey || !turnstileRef.current || activeTab === 'lookup') return;
     const timer = setTimeout(() => {
       if ((window as any).turnstile && turnstileRef.current) {
         try {
@@ -167,7 +180,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
       .catch((err) => {
         if (!isMounted) return;
         console.error('[Config Fetch] Error:', err);
-        setConfigError('Unable to load collection spots. Falling back to venue counter.');
+        setConfigError('Unable to load server config. Using offline collection desk.');
         // Sensible fallbacks
         setPasses([
           { id: 1, code: 'SIGMA', label: 'Sigma Pass (Single Person)', persons: 1, price: 499 },
@@ -177,10 +190,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
         setSpots([
           {
             id: 1,
-            name: 'Mahant Digvijaynath Park Gate Counter',
-            address: 'Mahant Digvijaynath Park, Ramgarh Tal Rd',
+            name: 'Caha Gorakhpur',
+            address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
             city: 'Gorakhpur',
-            contact_person: 'Festival In-charge',
+            contact_person: 'Festival Helpdesk',
             contact_phone: '9876543210',
             timings: '10:00 AM – 08:00 PM (Daily)',
           },
@@ -214,14 +227,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
       setFormError('Please enter a valid email address for your confirmation.');
       return;
     }
-    if (!selectedSpotId) {
-      setFormError('Please select a collection spot.');
-      return;
-    }
     if (!termsAccepted) {
-      setFormError('Please accept the terms and conditions to proceed.');
+      setFormError('Please accept the confirmation checkbox to proceed.');
       return;
     }
+
+    const passMode = activeTab === 'offline' ? 'offline' : 'online';
+    const spotToUse = selectedSpotId || (spots[0]?.id ?? 1);
 
     setIsSubmitting(true);
 
@@ -234,7 +246,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
           mobile: mobile.trim(),
           email: email.trim(),
           passType: selectedPass,
-          spotId: selectedSpotId,
+          passMode,
+          spotId: spotToUse,
           termsAccepted: true,
           turnstileToken: turnstileToken || undefined,
         }),
@@ -243,13 +256,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
       const data = await safeParseJson(res);
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete reservation.');
+        throw new Error(data.error || 'Failed to complete pass issuance.');
       }
 
+      const enrichedTicket: VirtualTicketData = {
+        ...data.ticket,
+        passMode: passMode === 'online' ? 'ONLINE' : 'OFFLINE',
+      };
+
       // Success
-      setActiveTicket(data.ticket);
+      setActiveTicket(enrichedTicket);
       try {
-        localStorage.setItem('raas_rang_active_ticket', JSON.stringify(data.ticket));
+        localStorage.setItem('raas_rang_active_ticket', JSON.stringify(enrichedTicket));
       } catch {
         // ignore
       }
@@ -343,15 +361,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
             onClose={handleAnimatedClose}
           />
         ) : (
-          /* Render Forms (Pre-Book or Find My Ticket) */
+          /* Render Forms (Get Online Pass, Get Offline Pass, or Find My Ticket) */
           <div className="booking-form-container">
             <div className="booking-modal-header">
-              <span className="booking-eyebrow">Raas~Rang 2026 • Official Pre-Ticket System</span>
+              <span className="booking-eyebrow">
+                {activeTab === 'online'
+                  ? 'Raas~Rang 2026 • Official Online Pass'
+                  : activeTab === 'offline'
+                  ? 'Raas~Rang 2026 • Official Offline Pass'
+                  : 'Raas~Rang 2026 • Pass Verification'}
+              </span>
               <h2 id="booking-modal-title" className="booking-modal-title">
-                Reserve Your Navratri Pass
+                {activeTab === 'online'
+                  ? 'Get Your Online Pass'
+                  : activeTab === 'offline'
+                  ? 'Get Your Offline Pass'
+                  : 'Find My Ticket'}
               </h2>
               <p className="booking-modal-subtitle">
-                Reserve now online with zero payment. Pay & collect your physical entry wristbands at your nearest Gorakhpur spot.
+                {activeTab === 'online'
+                  ? 'Instant digital entry pass with QR code. Direct smartphone entry at Mahant Digvijaynath Park — zero waiting.'
+                  : activeTab === 'offline'
+                  ? 'Reserve your physical entry wristbands with zero online payment. Pay & collect at Caha Gorakhpur (Taramandal).'
+                  : 'Already reserved an online or offline pass? Enter your ticket number and mobile last 4 digits to view and download it.'}
               </p>
             </div>
 
@@ -360,11 +392,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
               <button
                 type="button"
                 role="tab"
-                aria-selected={activeTab === 'book'}
-                className={`booking-tab ${activeTab === 'book' ? 'active' : ''}`}
-                onClick={() => setActiveTab('book')}
+                aria-selected={activeTab === 'online'}
+                className={`booking-tab ${activeTab === 'online' ? 'active' : ''}`}
+                onClick={() => setActiveTab('online')}
               >
-                🎟️ Pre-Book Pass
+                🌐 Get Online Pass
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'offline'}
+                className={`booking-tab ${activeTab === 'offline' ? 'active' : ''}`}
+                onClick={() => setActiveTab('offline')}
+              >
+                🎟️ Get Offline Pass
               </button>
               <button
                 type="button"
@@ -377,8 +418,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
               </button>
             </div>
 
-            {activeTab === 'book' ? (
-              /* TAB 1: PRE-BOOKING FORM */
+            {activeTab === 'online' || activeTab === 'offline' ? (
+              /* TAB 1 & 2: PASS BOOKING FORM (ONLINE OR OFFLINE) */
               <form onSubmit={handleBookingSubmit} className="booking-form" noValidate>
                 {formError && (
                   <div className="booking-alert error" role="alert">
@@ -467,30 +508,37 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
                   </div>
                 </div>
 
-                {/* 3. Collection Spot Selector */}
-                <div className="form-group">
-                  <label htmlFor="bk-spot">
-                    Choose Nearest Ticket Collection Spot <span className="req">*</span>
-                  </label>
-                  <select
-                    id="bk-spot"
-                    value={selectedSpotId}
-                    onChange={(e) => setSelectedSpotId(Number(e.target.value))}
-                    disabled={configLoading}
-                    required
-                  >
-                    {spots.map((spot) => (
-                      <option key={spot.id} value={spot.id}>
-                        📍 {spot.name} — {spot.timings}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedSpotId && (
-                    <span className="spot-preview-hint">
-                      Address: {spots.find((s) => s.id === Number(selectedSpotId))?.address}
-                    </span>
-                  )}
-                </div>
+                {/* 3. Spot / Gate Entry Info (Online vs Single Offline Spot) */}
+                {activeTab === 'online' ? (
+                  <div className="form-group">
+                    <label>Gate Entry & Access</label>
+                    <div className="spot-preview-card online-spot">
+                      <div className="spot-badge-tag">📲 Instant Digital QR E-Pass</div>
+                      <div className="spot-card-title">📍 Direct QR Gate Entry at Mahant Digvijaynath Park</div>
+                      <div className="spot-card-address">
+                        Your digital QR e-pass will be generated immediately upon confirmation. Simply present it on your mobile screen at the festival gate. No physical pickup required!
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label htmlFor="bk-spot">
+                      Official Ticket Collection Spot <span className="req">*</span>
+                    </label>
+                    <div className="spot-preview-card offline-spot">
+                      <div className="spot-badge-tag">🏢 Official Collection Counter (Single Authorized Spot)</div>
+                      <div className="spot-card-title">📍 Caha Gorakhpur</div>
+                      <div className="spot-card-address">
+                        Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017
+                      </div>
+                      <div className="spot-card-meta">
+                        <span>🕒 Timings: 10:00 AM – 08:00 PM (Daily)</span>
+                        <span>📞 Helpdesk: 9876543210</span>
+                      </div>
+                      <span className="spot-card-note">💡 Present your reservation number here to make payment and collect physical entry wristbands.</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* 4. Terms Checkbox */}
                 <div className="terms-checkbox-wrap">
@@ -503,7 +551,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
                       required
                     />
                     <span>
-                      I understand that this is a <strong>reservation only</strong>. I agree to show this pre-ticket number with a valid photo ID at the selected collection spot to complete payment and collect the physical entry pass.
+                      {activeTab === 'online' ? (
+                        <>
+                          I confirm that my attendee details are accurate. I will present this <strong>official digital pass with QR code</strong> on my phone at the venue gate on 17 October 2026.
+                        </>
+                      ) : (
+                        <>
+                          I understand that this is an <strong>offline pass reservation</strong>. I agree to show my pass reservation number at <strong>Caha Gorakhpur (Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal)</strong> to complete payment and collect physical entry wristbands.
+                        </>
+                      )}
                     </span>
                   </label>
                 </div>
@@ -523,10 +579,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, def
                 >
                   {isSubmitting ? (
                     <span className="btn-loading-state">
-                      <span className="spinner"></span> Generating Pre-Ticket Number...
+                      <span className="spinner"></span>{' '}
+                      {activeTab === 'online' ? 'Generating Online Pass...' : 'Reserving Offline Pass...'}
                     </span>
+                  ) : activeTab === 'online' ? (
+                    '✨ Get Online Pass'
                   ) : (
-                    '✨ Generate Pre-Ticket Number'
+                    '🎟️ Get Offline Pass'
                   )}
                 </button>
               </form>

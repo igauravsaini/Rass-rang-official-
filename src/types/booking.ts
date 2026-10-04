@@ -30,6 +30,7 @@ export interface VirtualTicketData {
   emailMasked?: string;
   passType: PassCode;
   passName: string;
+  passMode?: 'ONLINE' | 'OFFLINE';
   persons: number;
   price: number;
   spot: string;
@@ -49,6 +50,7 @@ export interface BookingFormData {
   mobile: string;
   email: string;
   passType: PassCode;
+  passMode?: 'ONLINE' | 'OFFLINE';
   spotId: number | '';
   termsAccepted: boolean;
   turnstileToken?: string;

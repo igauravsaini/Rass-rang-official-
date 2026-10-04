@@ -18,7 +18,7 @@ export const Tickets: React.FC = () => {
     setQuantities((prev) => ({ ...prev, [id]: val }));
   };
 
-  const handleBookNow = (e: React.MouseEvent, id: string) => {
+  const handleBookNow = (e: React.MouseEvent, id: string, mode: 'online' | 'offline' = 'online') => {
     e.preventDefault();
     let passCode: PassCode = 'COUPLE';
     if (id === 'ticket-sigma') passCode = 'SIGMA';
@@ -26,7 +26,7 @@ export const Tickets: React.FC = () => {
 
     window.dispatchEvent(
       new CustomEvent('open-booking-modal', {
-        detail: { passType: passCode },
+        detail: { passType: passCode, passMode: mode },
       })
     );
   };
@@ -35,9 +35,9 @@ export const Tickets: React.FC = () => {
     <section id="tickets" className="section tickets-section">
       <div className="section-container">
         <SectionHeading
-          eyebrow="Get Your Pass"
-          title="Tickets"
-          subtitle="Secure your spot at Purvanchal's biggest Navratri celebration"
+          eyebrow="Choose Your Pass"
+          title="Tickets & Passes"
+          subtitle="Get your verified digital online pass or reserve your offline pass for collection"
         />
 
         <div className="tickets-grid">
@@ -87,14 +87,22 @@ export const Tickets: React.FC = () => {
                       ariaLabel={`${ticket.name} quantity`}
                     />
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary ticket-book-btn"
-                    onClick={(e) => handleBookNow(e, ticket.id)}
-                    style={{ transform: 'translateZ(20px)' }}
-                  >
-                    Pre-Book {ticket.name}
-                  </button>
+                  <div className="ticket-actions-group" style={{ transform: 'translateZ(20px)' }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary ticket-btn-online"
+                      onClick={(e) => handleBookNow(e, ticket.id, 'online')}
+                    >
+                      🌐 Get Online Pass
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary ticket-btn-offline"
+                      onClick={(e) => handleBookNow(e, ticket.id, 'offline')}
+                    >
+                      🎟️ Get Offline Pass
+                    </button>
+                  </div>
                 </Card3D>
               </Reveal>
             );

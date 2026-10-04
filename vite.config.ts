@@ -13,7 +13,7 @@ function devApiMiddleware(): Plugin {
       payment_status: 'PENDING',
       created_at: new Date().toISOString(),
       passes: { id: 2, code: 'COUPLE', label: 'Couple Pass (2 Persons)', persons: 2, price: 899 },
-      spots: { id: 1, name: 'Mahant Digvijaynath Park Gate Counter', address: 'Mahant Digvijaynath Park, Ramgarh Tal Rd', city: 'Gorakhpur' },
+      spots: { id: 1, name: 'Caha Gorakhpur', address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017', city: 'Gorakhpur' },
     },
   ];
 
@@ -57,39 +57,12 @@ function devApiMiddleware(): Plugin {
             spots: [
               {
                 id: 1,
-                name: 'Mahant Digvijaynath Park Gate Counter',
-                address: 'Mahant Digvijaynath Park, Ramgarh Tal Rd',
+                name: 'Caha Gorakhpur',
+                address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
                 city: 'Gorakhpur',
-                contact_person: 'Ravi Verma (Festival In-charge)',
+                contact_person: 'Festival Helpdesk',
                 contact_phone: '9876543210',
                 timings: '10:00 AM – 08:00 PM (Daily)',
-              },
-              {
-                id: 2,
-                name: 'Golghar City Center Collection Desk',
-                address: 'Shop 14, Commercial Complex, Golghar Main Market',
-                city: 'Gorakhpur',
-                contact_person: 'Amit Srivastava',
-                contact_phone: '9876543211',
-                timings: '11:00 AM – 07:30 PM (Mon-Sat)',
-              },
-              {
-                id: 3,
-                name: 'Medical College Road Desk',
-                address: 'Near BRD Medical College Gate 1, Asuran Chowk',
-                city: 'Gorakhpur',
-                contact_person: 'Pooja Tiwari',
-                contact_phone: '9876543212',
-                timings: '10:30 AM – 07:00 PM (Daily)',
-              },
-              {
-                id: 4,
-                name: 'Rapti Nagar Outreach Center',
-                address: 'Sector 4 Community Hub, Rapti Nagar Phase 2',
-                city: 'Gorakhpur',
-                contact_person: 'Kunal Singh',
-                contact_phone: '9876543213',
-                timings: '11:00 AM – 06:30 PM (Daily)',
               },
             ],
           });
@@ -115,21 +88,25 @@ function devApiMiddleware(): Plugin {
               FAMILY: { label: 'Family Pass (4 Persons Entry)', persons: 4, price: 1699 },
             };
             const passInfo = passMap[body.passType] || passMap.COUPLE;
+            const isOnline = body.passMode === 'online';
 
             const newBooking = {
               ticketNo,
               name: body.name.trim(),
               mobileMasked: `${body.mobile.slice(0, 2)}XXXXXX${body.mobile.slice(-2)}`,
               passType: body.passType || 'COUPLE',
-              passName: passInfo.label,
+              passName: isOnline ? `${passInfo.label} (Online Pass)` : `${passInfo.label} (Offline Pass)`,
+              passMode: isOnline ? 'ONLINE' : 'OFFLINE',
               persons: passInfo.persons,
               price: passInfo.price,
-              spot: 'Mahant Digvijaynath Park Gate Counter',
-              spotAddress: 'Mahant Digvijaynath Park, Ramgarh Tal Rd, Gorakhpur',
+              spot: isOnline ? 'Direct Gate Entry (Mahant Digvijaynath Park)' : 'Caha Gorakhpur',
+              spotAddress: isOnline
+                ? 'Mahant Digvijaynath Park, Ramgarh Tal Rd, Gorakhpur'
+                : 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
               spotCity: 'Gorakhpur',
               spotTimings: '10:00 AM – 08:00 PM (Daily)',
-              spotContact: 'Ravi Verma (9876543210)',
-              status: 'PRE_BOOKED',
+              spotContact: 'Festival Helpdesk (9876543210)',
+              status: isOnline ? 'ISSUED' : 'PRE_BOOKED',
               createdAt: new Date().toISOString(),
             };
 
@@ -139,8 +116,8 @@ function devApiMiddleware(): Plugin {
               name: newBooking.name,
               mobile: body.mobile,
               email: body.email,
-              status: 'PRE_BOOKED',
-              payment_status: 'PENDING',
+              status: newBooking.status,
+              payment_status: isOnline ? 'PAID' : 'PENDING',
               created_at: newBooking.createdAt,
               passes: { code: newBooking.passType, label: newBooking.passName, persons: newBooking.persons, price: newBooking.price },
               spots: { name: newBooking.spot, address: newBooking.spotAddress, city: newBooking.spotCity },

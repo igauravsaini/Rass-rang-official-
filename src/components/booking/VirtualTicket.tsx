@@ -95,14 +95,18 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     }
   };
 
+  const isOnline = ticket.passMode === 'ONLINE';
+
   const shareText = encodeURIComponent(
-    `Jai Mata Di! Here is my Pre-Ticket for Raas~Rang Garba Nights 2026 (Gorakhpur):\n` +
+    `Jai Mata Di! Here is my ${isOnline ? 'Online Pass' : 'Offline Pass'} for Raas~Rang Garba Nights 2026 (Gorakhpur):\n` +
       `🎫 Ticket No: ${ticket.ticketNo}\n` +
       `👤 Name: ${ticket.name}\n` +
       `🎟️ Pass: ${ticket.passName}\n` +
-      `📍 Collection Spot: ${ticket.spot}\n` +
+      (isOnline
+        ? `📍 Direct Gate Entry: Mahant Digvijaynath Park\n`
+        : `📍 Collection Spot: ${ticket.spot}\n`) +
       `Event Date: 17 Oct 2026 at Mahant Digvijaynath Park.\n` +
-      `Reserve your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.pages.dev'}/`
+      `Get your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.pages.dev'}/`
   );
 
   const getStatusColor = (status: string) => {
@@ -128,7 +132,9 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
             <img src="/assets/images/logo.jpg" alt="Raas Rang Logo" className="vt-logo-img" />
             <div>
               <h2 className="vt-brand">RAAS~RANG GKP</h2>
-              <p className="vt-subbrand">NAVRATRI 2026 • PRE-TICKET RESERVATION</p>
+              <p className="vt-subbrand">
+                {isOnline ? 'NAVRATRI 2026 • OFFICIAL ONLINE PASS' : 'NAVRATRI 2026 • OFFLINE PASS RESERVATION'}
+              </p>
             </div>
           </div>
           <div
@@ -138,7 +144,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
               color: getStatusColor(ticket.status),
             }}
           >
-            ● {ticket.status.replace('_', ' ')}
+            ● {isOnline && ticket.status === 'ISSUED' ? 'ONLINE CONFIRMED' : ticket.status.replace('_', ' ')}
           </div>
         </div>
 
@@ -147,9 +153,15 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
         {/* Ticket Number Highlight */}
         <div className="vt-number-box">
-          <span className="vt-number-label">RESERVATION NUMBER</span>
+          <span className="vt-number-label">
+            {isOnline ? 'ONLINE PASS NUMBER' : 'OFFLINE RESERVATION NUMBER'}
+          </span>
           <div className="vt-ticket-no">{ticket.ticketNo}</div>
-          <span className="vt-number-note">Bring this code to collect physical passes</span>
+          <span className="vt-number-note">
+            {isOnline
+              ? 'Present this QR pass on your phone at event gate for admission'
+              : 'Bring this code to Caha Gorakhpur to collect physical wristbands'}
+          </span>
         </div>
 
         {/* Attendee & Pass Details Grid */}
@@ -174,15 +186,29 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           </div>
 
           <div className="vt-detail-item">
-            <span className="vt-label">Amount Payable at Spot</span>
+            <span className="vt-label">
+              {isOnline ? 'Pass Amount' : 'Amount Payable at Spot'}
+            </span>
             <span className="vt-val gold">₹{ticket.price}</span>
           </div>
 
           <div className="vt-detail-item full-width">
-            <span className="vt-label">Designated Collection Spot</span>
-            <span className="vt-val spot-name">📍 {ticket.spot}</span>
-            <span className="vt-spot-address">{ticket.spotAddress}</span>
-            <span className="vt-spot-timings">🕒 {ticket.spotTimings} • 📞 {ticket.spotContact}</span>
+            <span className="vt-label">
+              {isOnline ? 'Entry Gate & Venue' : 'Designated Collection Spot'}
+            </span>
+            <span className="vt-val spot-name">
+              📍 {isOnline ? 'Mahant Digvijaynath Park, Gorakhpur' : ticket.spot}
+            </span>
+            <span className="vt-spot-address">
+              {isOnline
+                ? 'Direct Smartphone QR Gate Entry — No prior physical pickup needed'
+                : ticket.spotAddress}
+            </span>
+            <span className="vt-spot-timings">
+              {isOnline
+                ? '🕒 Event Date: Saturday, 17 October 2026 · Gates Open 6:00 PM'
+                : `🕒 ${ticket.spotTimings} • 📞 ${ticket.spotContact}`}
+            </span>
           </div>
         </div>
 
@@ -191,13 +217,25 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           <div className="vt-qr-container">
             <canvas ref={canvasRef} className="vt-qr-canvas" />
           </div>
-          <p className="vt-qr-caption">Scan at desk for pass handover & verification</p>
+          <p className="vt-qr-caption">
+            {isOnline
+              ? 'Scan at event entrance gate for direct verified entry'
+              : 'Scan at desk for wristband handover & verification'}
+          </p>
         </div>
 
         {/* Footer Warning & Notice */}
         <div className="vt-footer">
           <p className="vt-notice">
-            ⚠️ <strong>Important:</strong> This is a pre-ticket reservation only. Please show this ticket number along with a valid government photo ID at the collection spot to make payment and collect physical entry passes.
+            {isOnline ? (
+              <>
+                ✨ <strong>Official Online Pass:</strong> Show this virtual QR ticket on your smartphone at the gate on 17 October 2026 for seamless entry.
+              </>
+            ) : (
+              <>
+                ⚠️ <strong>Important:</strong> Please show this reservation number along with a valid photo ID at <strong>Caha Gorakhpur (Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal)</strong> to make payment and collect physical wristbands.
+              </>
+            )}
           </p>
           <div className="vt-event-info">
             <span>📅 Saturday, 17 October 2026</span>
@@ -244,7 +282,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       <div className="vt-secondary-links">
         {onBookAnother && (
           <button type="button" className="vt-link-btn" onClick={onBookAnother}>
-            + Book Another Pass
+            + Get Another Pass
           </button>
         )}
         {onClose && (
