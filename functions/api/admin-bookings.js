@@ -1,9 +1,17 @@
 import { getDb } from '../_lib/db.js';
 import { authenticateRequest } from '../_lib/auth.js';
 
+const ADMIN_ORIGIN =
+  'https://admin-panel.web-app-dashboard.workers.dev';
+
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
+  'Access-Control-Allow-Origin': ADMIN_ORIGIN,
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+  'Access-Control-Max-Age': '86400',
+  'Vary': 'Origin',
 };
 
 function json(body, status = 200) {
@@ -22,8 +30,17 @@ function cleanSearch(value) {
   return String(value || '').trim().replace(/[(),\\]/g, ' ').replace(/\s+/g, ' ').slice(0, 100);
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: JSON_HEADERS });
+export async function onRequestOptions(context) {
+  const origin = context.request.headers.get('Origin');
+
+  if (origin !== ADMIN_ORIGIN) {
+    return new Response(null, { status: 403 });
+  }
+
+  return new Response(null, {
+    status: 204,
+    headers: JSON_HEADERS,
+  });
 }
 
 export async function onRequestGet(context) {
@@ -48,8 +65,15 @@ export async function onRequestGet(context) {
     }
 
     const page = Math.max(1, Math.min(100000, Number.parseInt(url.searchParams.get('page') || '1', 10) || 1));
-    const requestedLimit = Number.parseInt(url.searchParams.get('limit') || '100', 10) || 100;
-    const limit = Math.max(1, Math.min(isExport ? 5000 : 100, requestedLimit));
+    const requestedLimit = Number.parseInt(
+      url.searchParams.get('limit') || (isExport ? '5000' : '100'),
+      10
+    ) || (isExport ? 5000 : 100);
+    
+    const limit = Math.max(
+      1,
+      Math.min(isExport ? 5000 : 100, requestedLimit)
+    );
 
     const supabase = getDb(env);
     let query = supabase
@@ -76,14 +100,18 @@ export async function onRequestGet(context) {
       `, { count: 'exact' })
       .order('created_at', { ascending: false });
 
-    if (search) {
-      const term = search.replace(/[%_]/g, '');
-      if (term) {
-        query = query.or(
-          `ticket_code.ilike.%${term}%,customer_name.ilike.%${term}%,mobile.ilike.%${term}%,email.ilike.%${term}%`
-        );
+      if (search) {
+        const term = search
+          .replace(/[^a-zA-Z0-9@.+\-\s]/g, '')
+          .trim()
+          .slice(0, 100);
+      
+        if (term) {
+          query = query.or(
+            `ticket_code.ilike.%${term}%,customer_name.ilike.%${term}%,mobile.ilike.%${term}%,email.ilike.%${term}%`
+          );
+        }
       }
-    }
 
     if (passFilter && passFilter !== 'ALL') {
       // Accept either the current pass UUID or its public pass_code.
@@ -150,9 +178,9 @@ export async function onRequestGet(context) {
       return new Response([header.map(csvCell).join(','), ...csvRows].join('\r\n'), {
         status: 200,
         headers: {
+          ...JSON_HEADERS,
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': `attachment; filename="raas_rang_bookings_${new Date().toISOString().slice(0, 10)}.csv"`,
-          'Cache-Control': 'no-store',
         },
       });
     }
