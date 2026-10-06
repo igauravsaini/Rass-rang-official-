@@ -238,20 +238,25 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/book-ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          mobile: mobile.trim(),
-          email: email.trim(),
-          passType: selectedPass,
-          passMode,
-          spotId: spotToUse,
-          termsAccepted: true,
-          turnstileToken: turnstileToken || undefined,
-        }),
-      });
+      const endpoint =
+     activeTab === 'offline'
+    ? '/api/offline-booking'
+    : '/api/book-ticket';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        email: email.trim(),
+        passType: selectedPass,
+        passMode,
+        spotId: spotToUse,
+        termsAccepted: true,
+        turnstileToken: turnstileToken || undefined,
+      }),
+    });
 
       const data = await safeParseJson(res);
 
