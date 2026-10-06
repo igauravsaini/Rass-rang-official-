@@ -161,8 +161,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     // ---------------------------------------------------------
     // OFFLINE PASS
-    // Offline booking has its own trusted backend configuration.
-    // It does not need Supabase /api/config.
+    // Never call /api/config for offline bookings.
     // ---------------------------------------------------------
     if (activeTab === 'offline') {
       setConfigError(null);
@@ -212,7 +211,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     // ---------------------------------------------------------
     // ONLINE PASS
-    // Keep the existing Supabase-backed configuration flow.
+    // Keep the existing Supabase-backed configuration.
     // ---------------------------------------------------------
     let isMounted = true;
 
@@ -223,14 +222,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       .then((res) => safeParseJson(res))
       .then((data) => {
         if (!isMounted) return;
-        if (data.success) {
-          setPasses(data.passes || []);
-          setSpots(data.spots || []);
-          if (data.spots && data.spots.length > 0 && selectedSpotId === '') {
-            setSelectedSpotId(data.spots[0].id);
-          }
-        } else {
+
+        if (!data.success) {
           throw new Error(data.error || 'Server error loading passes');
+        }
+
+        setPasses(data.passes || []);
+        setSpots(data.spots || []);
+
+        if (data.spots?.length > 0 && selectedSpotId === '') {
+          setSelectedSpotId(data.spots[0].id);
         }
       })
       .catch((err) => {
@@ -239,7 +240,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         console.error('[Config Fetch] Error:', err);
         setConfigError('Unable to load server config.');
 
-        // Keep the existing fallback so the form remains usable.
         setPasses([
           {
             id: 1,
