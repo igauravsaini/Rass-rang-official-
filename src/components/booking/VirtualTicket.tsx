@@ -42,7 +42,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
   };
 
   const waitForTicketAssets = async () => {
-    // Wait for fonts
+    // Wait for web fonts
     if (document.fonts?.ready) {
       await document.fonts.ready;
     }
@@ -54,19 +54,158 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
     await Promise.all(
       images.map((img) => {
-        if (img.complete) return Promise.resolve();
+        if (img.complete && img.naturalWidth > 0) {
+          return Promise.resolve();
+        }
 
         return new Promise<void>((resolve) => {
-          img.addEventListener('load', () => resolve(), { once: true });
-          img.addEventListener('error', () => resolve(), { once: true });
+          const done = () => resolve();
+
+          img.addEventListener('load', done, { once: true });
+          img.addEventListener('error', done, { once: true });
         });
       })
     );
 
-    // Give the browser one frame to finish rendering
+    // Make sure QR canvas has been painted
     await new Promise<void>((resolve) =>
       requestAnimationFrame(() => resolve())
     );
+
+    // One additional frame for browser layout/paint
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve())
+    );
+  };
+
+  const captureTicket = async () => {
+    if (!ticketRef.current) {
+      throw new Error('Ticket element is not available.');
+    }
+
+    await waitForTicketAssets();
+
+    const { default: html2canvas } = await import('html2canvas');
+
+    const element = ticketRef.current;
+
+    const canvas = await html2canvas(element, {
+      scale: 3,
+
+      useCORS: true,
+      allowTaint: false,
+
+      backgroundColor: '#12030a',
+
+      // Important for tickets inside a modal/scroll container
+      scrollX: 0,
+      scrollY: 0,
+
+      windowWidth: Math.max(
+        document.documentElement.clientWidth,
+        element.scrollWidth,
+        1200
+      ),
+
+      windowHeight: Math.max(
+        document.documentElement.clientHeight,
+        element.scrollHeight,
+        1600
+      ),
+
+      logging: false,
+
+      foreignObjectRendering: false,
+
+      onclone: (clonedDocument) => {
+        const clonedTicket = clonedDocument.querySelector(
+          '#virtualTicket'
+        ) as HTMLElement | null;
+
+        if (!clonedTicket) {
+          return;
+        }
+
+        let current: HTMLElement | null = clonedTicket;
+
+        while (current) {
+          current.style.opacity = '1';
+          current.style.transform = 'none';
+          current.style.filter = 'none';
+          current.style.webkitFilter = 'none';
+          current.style.backdropFilter = 'none';
+          current.style.setProperty('-webkit-backdrop-filter', 'none');
+          current.style.visibility = 'visible';
+          current.style.animation = 'none';
+          current.style.transition = 'none';
+          current.style.maxHeight = 'none';
+          current.style.overflow = 'visible';
+
+          current = current.parentElement;
+        }
+
+        clonedTicket.style.position = 'relative';
+        clonedTicket.style.display = 'block';
+        clonedTicket.style.visibility = 'visible';
+        clonedTicket.style.opacity = '1';
+        clonedTicket.style.transform = 'none';
+        clonedTicket.style.filter = 'none';
+        clonedTicket.style.background =
+          'radial-gradient(ellipse at center, #240510 0%, #12030a 60%, #060105 100%)';
+
+        clonedTicket.style.width = '100%';
+        clonedTicket.style.height = 'auto';
+        clonedTicket.style.minHeight = '0';
+
+        clonedTicket.style.boxSizing = 'border-box';
+        clonedTicket.style.overflow = 'visible';
+
+        const qrCanvas =
+          clonedTicket.querySelector(
+            '.vt-qr-canvas'
+          ) as HTMLCanvasElement | null;
+
+        if (qrCanvas) {
+          qrCanvas.style.display = 'block';
+          qrCanvas.style.visibility = 'visible';
+          qrCanvas.style.opacity = '1';
+          qrCanvas.style.width = '170px';
+          qrCanvas.style.height = '170px';
+        }
+
+        const qrContainer =
+          clonedTicket.querySelector(
+            '.vt-qr-container'
+          ) as HTMLElement | null;
+
+        if (qrContainer) {
+          qrContainer.style.background = '#ffffff';
+          qrContainer.style.opacity = '1';
+          qrContainer.style.visibility = 'visible';
+        }
+
+        const logo =
+          clonedTicket.querySelector(
+            '.vt-logo-img'
+          ) as HTMLImageElement | null;
+
+        if (logo) {
+          logo.style.display = 'block';
+          logo.style.visibility = 'visible';
+          logo.style.opacity = '1';
+        }
+
+        const allElements =
+          clonedTicket.querySelectorAll<HTMLElement>('*');
+
+        allElements.forEach((child) => {
+          child.style.animation = 'none';
+          child.style.transition = 'none';
+        });
+      },
+    });
+
+    return canvas;
   };
 
   const handleDownloadPng = async () => {
@@ -75,30 +214,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     try {
       setDownloadingPng(true);
 
-      await waitForTicketAssets();
-
-      const { default: html2canvas } = await import('html2canvas');
-
-      const ticketElement = ticketRef.current;
-
-      const canvas = await html2canvas(ticketElement, {
-        scale: 3,
-
-        useCORS: true,
-        allowTaint: true,
-
-        backgroundColor: '#0a0412',
-
-        // IMPORTANT:
-        // Let html2canvas use the ticket exactly as it is rendered.
-        scrollX: -window.scrollX,
-        scrollY: -window.scrollY,
-
-        logging: false,
-
-        // Do NOT use foreignObjectRendering.
-        foreignObjectRendering: false,
-      });
+      const canvas = await captureTicket();
 
       const dataUrl = canvas.toDataURL('image/png', 1.0);
 
@@ -110,7 +226,6 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
     } catch (err) {
       console.error('[Download PNG] Failed:', err);
 
@@ -128,39 +243,20 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     try {
       setDownloadingPdf(true);
 
-      await waitForTicketAssets();
-
-      const [{ default: html2canvas }, { default: jsPDF }] =
+      const [{ default: jsPDF }, canvas] =
         await Promise.all([
-          import('html2canvas'),
-          import('jspdf'),
+          import('jspdf').then((module) => ({
+            default: module.jsPDF,
+          })),
+          captureTicket(),
         ]);
-
-      const ticketElement = ticketRef.current;
-
-      const canvas = await html2canvas(ticketElement, {
-        scale: 3,
-
-        useCORS: true,
-        allowTaint: true,
-
-        backgroundColor: '#0a0412',
-
-        scrollX: -window.scrollX,
-        scrollY: -window.scrollY,
-
-        logging: false,
-
-        foreignObjectRendering: false,
-      });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
 
-      /*
-       * A5 portrait
-       */
+      // A5 portrait
       const pageWidth = 148;
       const pageHeight = 210;
+
       const margin = 5;
 
       const availableWidth = pageWidth - margin * 2;
@@ -186,6 +282,9 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         compress: true,
       });
 
+      pdf.setFillColor(18, 3, 10);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
       pdf.addImage(
         imgData,
         'PNG',
@@ -200,7 +299,6 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       pdf.save(
         `RaasRang-Ticket-${ticket.ticketNo}.pdf`
       );
-
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
 
