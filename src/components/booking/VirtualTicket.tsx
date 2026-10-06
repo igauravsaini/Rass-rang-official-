@@ -80,39 +80,24 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       const { default: html2canvas } = await import('html2canvas');
 
       const ticketElement = ticketRef.current;
+      const rect = ticketElement.getBoundingClientRect();
 
       const canvas = await html2canvas(ticketElement, {
         scale: 3,
+
         useCORS: true,
         allowTaint: false,
-        backgroundColor: '#0a0412',
 
-        width: ticketElement.scrollWidth,
-        height: ticketElement.scrollHeight,
+        backgroundColor: null,
 
-        windowWidth: Math.max(
-          document.documentElement.clientWidth,
-          ticketElement.scrollWidth
-        ),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
 
-        windowHeight: Math.max(
-          document.documentElement.clientHeight,
-          ticketElement.scrollHeight
-        ),
+        scrollX: 0,
+        scrollY: 0,
 
-        onclone: (clonedDocument) => {
-          const clonedTicket =
-            clonedDocument.getElementById('virtualTicket');
-
-          if (!clonedTicket) return;
-
-          clonedTicket.style.height = 'auto';
-          clonedTicket.style.maxHeight = 'none';
-          clonedTicket.style.minHeight = '0';
-          clonedTicket.style.overflow = 'visible';
-          clonedTicket.style.transform = 'none';
-          clonedTicket.style.display = 'block';
-        },
+        foreignObjectRendering: true,
+        logging: false,
       });
 
       const dataUrl = canvas.toDataURL('image/png', 1.0);
@@ -130,7 +115,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       console.error('[Download PNG] Failed:', err);
 
       alert(
-        'Unable to generate the complete ticket image. Please try again.'
+        'Unable to generate the ticket image. Please try again.'
       );
     } finally {
       setDownloadingPng(false);
@@ -151,46 +136,31 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       ]);
 
       const ticketElement = ticketRef.current;
+      const rect = ticketElement.getBoundingClientRect();
 
       const canvas = await html2canvas(ticketElement, {
         scale: 3,
+
         useCORS: true,
         allowTaint: false,
-        backgroundColor: '#0a0412',
 
-        width: ticketElement.scrollWidth,
-        height: ticketElement.scrollHeight,
+        backgroundColor: null,
 
-        windowWidth: Math.max(
-          document.documentElement.clientWidth,
-          ticketElement.scrollWidth
-        ),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
 
-        windowHeight: Math.max(
-          document.documentElement.clientHeight,
-          ticketElement.scrollHeight
-        ),
+        scrollX: 0,
+        scrollY: 0,
 
-        onclone: (clonedDocument) => {
-          const clonedTicket =
-            clonedDocument.getElementById('virtualTicket');
-
-          if (!clonedTicket) return;
-
-          clonedTicket.style.height = 'auto';
-          clonedTicket.style.maxHeight = 'none';
-          clonedTicket.style.minHeight = '0';
-          clonedTicket.style.overflow = 'visible';
-          clonedTicket.style.transform = 'none';
-          clonedTicket.style.display = 'block';
-        },
+        foreignObjectRendering: true,
+        logging: false,
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
 
       const pageWidth = 148;
       const pageHeight = 210;
-      const margin = 5;
+      const margin = 6;
 
       const availableWidth = pageWidth - margin * 2;
       const availableHeight = pageHeight - margin * 2;
@@ -205,6 +175,9 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         imageWidth = imageHeight * imageRatio;
       }
 
+      /*
+       * Center the ticket on the page.
+       */
       const x = (pageWidth - imageWidth) / 2;
       const y = (pageHeight - imageHeight) / 2;
 
@@ -226,13 +199,15 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         'FAST'
       );
 
-      pdf.save(`RaasRang-Ticket-${ticket.ticketNo}.pdf`);
+      pdf.save(
+        `RaasRang-Ticket-${ticket.ticketNo}.pdf`
+      );
 
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
 
       alert(
-        'Unable to generate the complete PDF ticket. Please try again.'
+        'Unable to generate the ticket PDF. Please try again.'
       );
     } finally {
       setDownloadingPdf(false);
