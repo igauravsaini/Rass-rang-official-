@@ -153,8 +153,6 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         clonedTicket.style.background =
           'radial-gradient(ellipse at center, #240510 0%, #12030a 60%, #060105 100%)';
 
-        clonedTicket.style.width = '100%';
-        clonedTicket.style.height = 'auto';
         clonedTicket.style.minHeight = '0';
 
         clonedTicket.style.boxSizing = 'border-box';
@@ -202,6 +200,172 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           child.style.animation = 'none';
           child.style.transition = 'none';
         });
+
+        // -------------------------------------------------------
+        // EXPORT-ONLY ALIGNMENT FIXES
+        // -------------------------------------------------------
+
+        const exportStyle =
+          clonedDocument.createElement('style');
+
+        exportStyle.textContent = `
+          /* Keep the exported ticket at a stable desktop width */
+          #virtualTicket {
+            width: 700px !important;
+            max-width: 700px !important;
+            min-width: 700px !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+          }
+
+          /* Header */
+          #virtualTicket .vt-header {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            align-items: center !important;
+          }
+
+          #virtualTicket .vt-logo-row {
+            display: flex !important;
+            align-items: center !important;
+          }
+
+          /* Reservation number section */
+          #virtualTicket .vt-number-box {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            overflow: hidden !important;
+          }
+
+          #virtualTicket .vt-number-label {
+            position: relative !important;
+            z-index: 5 !important;
+            display: block !important;
+            width: 100% !important;
+            text-align: center !important;
+            line-height: 1.2 !important;
+          }
+
+          #virtualTicket .vt-ticket-no {
+            position: relative !important;
+            z-index: 6 !important;
+
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+
+            width: 100% !important;
+            box-sizing: border-box !important;
+
+            text-align: center !important;
+            white-space: nowrap !important;
+
+            font-size: 48px !important;
+            line-height: 1.05 !important;
+
+            padding: 8px 20px !important;
+            margin: 8px 0 !important;
+
+            overflow: visible !important;
+          }
+
+          #virtualTicket .vt-number-note {
+            position: relative !important;
+            z-index: 5 !important;
+
+            display: block !important;
+            width: 100% !important;
+
+            text-align: center !important;
+            line-height: 1.35 !important;
+          }
+
+          /* Details */
+          #virtualTicket .vt-details-grid {
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+
+          #virtualTicket .vt-detail-item {
+            box-sizing: border-box !important;
+            min-width: 0 !important;
+          }
+
+          #virtualTicket .vt-val {
+            overflow-wrap: break-word !important;
+            word-break: normal !important;
+          }
+
+          /* Collection spot */
+          #virtualTicket .vt-detail-item.full-width {
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+
+          #virtualTicket .vt-spot-address {
+            line-height: 1.45 !important;
+          }
+
+          #virtualTicket .vt-spot-timings {
+            line-height: 1.4 !important;
+          }
+
+          /* QR */
+          #virtualTicket .vt-qr-section {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+          }
+
+          #virtualTicket .vt-qr-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+
+          /* Footer */
+          #virtualTicket .vt-footer {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            padding-top: 20px !important;
+            padding-bottom: 16px !important;
+          }
+
+          #virtualTicket .vt-notice {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            line-height: 1.45 !important;
+          }
+
+          #virtualTicket .vt-event-info {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 24px !important;
+            flex-wrap: wrap !important;
+            text-align: center !important;
+            line-height: 1.4 !important;
+          }
+        `;
+
+        clonedDocument.head.appendChild(exportStyle);
       },
     });
 
