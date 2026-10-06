@@ -298,17 +298,21 @@ export async function onRequestPost(context) {
     );
 
     if (existingBooking) {
-      console.log(
-        '[Offline Booking] Existing booking found:',
-        existingBooking.ticketNumber
-      );
+    console.log(
+      '[Offline Booking] Existing booking found:',
+      existingBooking.ticketNumber
+    );
 
-      return jsonResponse({
-        success: true,
-        existing: true,
-        ticket: buildTicketFromBooking(existingBooking),
-      });
-    }
+    return jsonResponse(
+      {
+        success: false,
+        code: 'ALREADY_REGISTERED',
+        error:
+          'This mobile number and email are already registered for an offline pass reservation.',
+      },
+      409
+    );
+  }
 
     // ---------------------------------------------------------
     // STEP 2

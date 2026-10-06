@@ -341,12 +341,34 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       }),
     });
 
-      const data = await safeParseJson(res);
+    const data = await safeParseJson(res);
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete pass issuance.');
-      }
+    // ---------------------------------------------------------
+    // OFFLINE DUPLICATE REGISTRATION
+    // The backend found an existing active reservation for the
+    // same mobile + email combination.
+    // Do NOT show the existing ticket.
+    // ---------------------------------------------------------
+    if (
+      activeTab === 'offline' &&
+      res.status === 409 &&
+      data.code === 'ALREADY_REGISTERED'
+    ) {
+      setFormError(
+        'This mobile number and email are already registered for an offline pass. Please use different details, or use “Find My Ticket” to access your existing reservation.'
+      );
 
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // OTHER ERRORS
+    // ---------------------------------------------------------
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.error || 'Failed to complete pass issuance.'
+      );
+    }
       const enrichedTicket: VirtualTicketData = {
         ...data.ticket,
         passMode: passMode === 'online' ? 'ONLINE' : 'OFFLINE',
