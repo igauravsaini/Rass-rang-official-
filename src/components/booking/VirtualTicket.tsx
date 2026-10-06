@@ -80,24 +80,24 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       const { default: html2canvas } = await import('html2canvas');
 
       const ticketElement = ticketRef.current;
-      const rect = ticketElement.getBoundingClientRect();
 
       const canvas = await html2canvas(ticketElement, {
         scale: 3,
 
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
 
-        backgroundColor: null,
+        backgroundColor: '#0a0412',
 
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
+        // IMPORTANT:
+        // Let html2canvas use the ticket exactly as it is rendered.
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
 
-        scrollX: 0,
-        scrollY: 0,
-
-        foreignObjectRendering: true,
         logging: false,
+
+        // Do NOT use foreignObjectRendering.
+        foreignObjectRendering: false,
       });
 
       const dataUrl = canvas.toDataURL('image/png', 1.0);
@@ -130,54 +130,52 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
       await waitForTicketAssets();
 
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ]);
+      const [{ default: html2canvas }, { default: jsPDF }] =
+        await Promise.all([
+          import('html2canvas'),
+          import('jspdf'),
+        ]);
 
       const ticketElement = ticketRef.current;
-      const rect = ticketElement.getBoundingClientRect();
 
       const canvas = await html2canvas(ticketElement, {
         scale: 3,
 
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
 
-        backgroundColor: null,
+        backgroundColor: '#0a0412',
 
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
 
-        scrollX: 0,
-        scrollY: 0,
-
-        foreignObjectRendering: true,
         logging: false,
+
+        foreignObjectRendering: false,
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
 
+      /*
+       * A5 portrait
+       */
       const pageWidth = 148;
       const pageHeight = 210;
-      const margin = 6;
+      const margin = 5;
 
       const availableWidth = pageWidth - margin * 2;
       const availableHeight = pageHeight - margin * 2;
 
-      const imageRatio = canvas.width / canvas.height;
+      const ratio = canvas.width / canvas.height;
 
       let imageWidth = availableWidth;
-      let imageHeight = imageWidth / imageRatio;
+      let imageHeight = imageWidth / ratio;
 
       if (imageHeight > availableHeight) {
         imageHeight = availableHeight;
-        imageWidth = imageHeight * imageRatio;
+        imageWidth = imageHeight * ratio;
       }
 
-      /*
-       * Center the ticket on the page.
-       */
       const x = (pageWidth - imageWidth) / 2;
       const y = (pageHeight - imageHeight) / 2;
 
