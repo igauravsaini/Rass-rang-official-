@@ -246,7 +246,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
             text-align: center !important;
 
-            padding: 18px 24px 16px !important;
+            padding: 18px 24px 20px !important;
 
             overflow: hidden !important;
           }
@@ -270,31 +270,34 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           }
 
           /* Reservation number */
-          #virtualTicket .vt-ticket-no {
-            display: flex !important;
+         #virtualTicket .vt-ticket-no {
+          display: flex !important;
 
-            align-items: center !important;
-            justify-content: center !important;
+          align-items: center !important;
+          justify-content: center !important;
 
-            width: 100% !important;
-            height: 62px !important;
+          width: 100% !important;
 
-            box-sizing: border-box !important;
+          /* Make the gold area taller */
+          height: 82px !important;
+          min-height: 82px !important;
 
-            margin: 0 !important;
-            padding: 0 12px !important;
+          box-sizing: border-box !important;
 
-            text-align: center !important;
-            white-space: nowrap !important;
+          margin: 0 !important;
+          padding: 6px 20px !important;
 
-            font-size: 30px !important;
-            line-height: 1 !important;
+          text-align: center !important;
+          white-space: nowrap !important;
 
-            position: relative !important;
-            z-index: 20 !important;
+          font-size: 30px !important;
+          line-height: 1 !important;
 
-            overflow: hidden !important;
-          }
+          position: relative !important;
+          z-index: 20 !important;
+
+          overflow: visible !important;
+        }
 
           /* Small instruction below number */
           #virtualTicket .vt-number-note {
