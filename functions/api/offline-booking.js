@@ -1,7 +1,7 @@
 import { generateTicketNumber } from '../_lib/ticketId.js';
 
 const GOOGLE_SHEETS_WEBHOOK_URL =
-  'https://script.google.com/macros/s/AKfycbzu10x5UDITi1xSMdZbu6fybHqacC_lbiJ4uWVh-EjGu3ZHIiVQD3ZHfOKwGa6jHNIk/exec';
+  'https://script.google.com/macros/s/AKfycbyeKheJhwIpx_XIWOdEO_OjyDNLOnhJ9YXpequuAeGvIQZuohugJewUUVoNKE--WTG_/exec';
 
 const PASSES = {
   SIGMA: {
@@ -56,13 +56,145 @@ function isValidPassType(passType) {
   return Object.prototype.hasOwnProperty.call(PASSES, passType);
 }
 
+function maskMobile(mobile) {
+  return `${mobile.slice(0, 2)}******${mobile.slice(-2)}`;
+}
+
+function buildTicketFromBooking(booking) {
+  const pass = PASSES[String(booking.passType || '').toUpperCase()];
+
+  if (!pass) {
+    throw new Error('Invalid pass information in booking register.');
+  }
+
+  const mobile = String(booking.mobile || '');
+  const email = String(booking.email || '');
+
+  return {
+    ticketNo: booking.ticketNumber,
+
+    name: booking.customerName,
+    mobileMasked: maskMobile(mobile),
+    emailMasked: email,
+
+    passType: pass.code,
+    passName: pass.label,
+    passMode: 'OFFLINE',
+
+    persons: Number(booking.persons || pass.persons),
+    price: Number(booking.passAmount || pass.price),
+
+    spot: booking.collectionSpot || COLLECTION_SPOT.name,
+    spotAddress: COLLECTION_SPOT.address,
+    spotCity: COLLECTION_SPOT.city,
+    spotTimings: COLLECTION_SPOT.timings,
+    spotContact: COLLECTION_SPOT.contact_phone,
+
+    status: booking.bookingStatus || 'PRE_BOOKED',
+    paymentStatus: booking.paymentStatus || 'PENDING',
+
+    createdAt: booking.createdAt || null,
+
+    collectedAt: booking.collectedAt || null,
+    checkedInAt: booking.checkedInAt || null,
+  };
+}
+
+async function parseJsonSafely(response) {
+  const text = await response.text();
+
+  if (!text || !text.trim()) {
+    return {
+      ok: false,
+      data: null,
+      raw: '',
+    };
+  }
+
+  try {
+    return {
+      ok: true,
+      data: JSON.parse(text),
+      raw: text,
+    };
+  } catch {
+    return {
+      ok: false,
+      data: null,
+      raw: text,
+    };
+  }
+}
+
+async function callGoogleSheets(payload) {
+  let response;
+
+  try {
+    response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    console.error(
+      '[Offline Booking] Google Sheets network error:',
+      error
+    );
+
+    return {
+      networkError: true,
+      httpOk: false,
+      jsonOk: false,
+      data: null,
+    };
+  }
+
+  const parsed = await parseJsonSafely(response);
+
+  return {
+    networkError: false,
+    httpOk: response.ok,
+    jsonOk: parsed.ok,
+    data: parsed.data,
+  };
+}
+
+async function checkExistingBooking(webhookToken, mobile, email) {
+  const result = await callGoogleSheets({
+    webhookToken,
+    action: 'CHECK_EXISTING',
+    mobile,
+    email,
+  });
+
+  if (
+    result.httpOk &&
+    result.jsonOk &&
+    result.data?.success === true &&
+    result.data?.existing === true &&
+    result.data?.booking
+  ) {
+    return result.data.booking;
+  }
+
+  if (
+    result.httpOk &&
+    result.jsonOk &&
+    result.data?.success === true &&
+    result.data?.existing === false
+  ) {
+    return null;
+  }
+
+  return undefined;
+}
+
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
 
-    // ---------------------------------------------------------
-    // 1. Check server-side Google Sheets secret
-    // ---------------------------------------------------------
     const webhookToken = env?.GOOGLE_SHEETS_WEBHOOK_TOKEN;
 
     if (!webhookToken) {
@@ -79,9 +211,6 @@ export async function onRequestPost(context) {
       );
     }
 
-    // ---------------------------------------------------------
-    // 2. Parse request
-    // ---------------------------------------------------------
     let body;
 
     try {
@@ -104,9 +233,6 @@ export async function onRequestPost(context) {
       .toUpperCase();
     const termsAccepted = body?.termsAccepted === true;
 
-    // ---------------------------------------------------------
-    // 3. Validate customer details
-    // ---------------------------------------------------------
     if (!name || name.length < 2) {
       return jsonResponse(
         {
@@ -158,25 +284,43 @@ export async function onRequestPost(context) {
       );
     }
 
-    // ---------------------------------------------------------
-    // 4. Get trusted pass information
-    //    NEVER trust price/person count from the browser.
-    // ---------------------------------------------------------
     const pass = PASSES[passType];
 
     // ---------------------------------------------------------
-    // 5. Generate the REAL Raas-Rang ticket number
-    //    Format: RRG-26-XXXXXX
+    // STEP 1
+    // Check whether this customer already has an active booking.
     // ---------------------------------------------------------
-    const ticketNumber = generateTicketNumber('26');
 
+    const existingBooking = await checkExistingBooking(
+      webhookToken,
+      mobile,
+      email
+    );
+
+    if (existingBooking) {
+      console.log(
+        '[Offline Booking] Existing booking found:',
+        existingBooking.ticketNumber
+      );
+
+      return jsonResponse({
+        success: true,
+        existing: true,
+        ticket: buildTicketFromBooking(existingBooking),
+      });
+    }
+
+    // ---------------------------------------------------------
+    // STEP 2
+    // Generate a new ticket ONLY if no existing booking exists.
+    // ---------------------------------------------------------
+
+    const ticketNumber = generateTicketNumber('26');
     const createdAt = new Date().toISOString();
 
-    // ---------------------------------------------------------
-    // 6. Prepare Google Sheets payload
-    // ---------------------------------------------------------
-    const sheetsPayload = {
+    const bookingPayload = {
       webhookToken,
+      action: 'BOOK_OFFLINE',
 
       ticketNumber,
       customerName: name,
@@ -200,119 +344,132 @@ export async function onRequestPost(context) {
     };
 
     // ---------------------------------------------------------
-    // 7. Save booking to Google Sheets
+    // STEP 3
+    // Ask Google Sheets to create the booking.
     // ---------------------------------------------------------
-    let sheetsResponse;
 
-    try {
-      sheetsResponse = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sheetsPayload),
+    const bookingResult = await callGoogleSheets(bookingPayload);
+
+    // ---------------------------------------------------------
+    // STEP 4
+    // Normal successful response.
+    // ---------------------------------------------------------
+
+    if (
+      bookingResult.httpOk &&
+      bookingResult.jsonOk &&
+      bookingResult.data?.success === true
+    ) {
+      const data = bookingResult.data;
+
+      if (data.existing && data.booking) {
+        return jsonResponse({
+          success: true,
+          existing: true,
+          ticket: buildTicketFromBooking(data.booking),
+        });
+      }
+
+      if (data.ticketNumber && data.booking) {
+        return jsonResponse({
+          success: true,
+          existing: false,
+          ticket: buildTicketFromBooking(data.booking),
+        });
+      }
+
+      // Older/alternate successful response format.
+      if (data.ticketNumber) {
+        return jsonResponse({
+          success: true,
+          existing: false,
+          ticket: {
+            ticketNo: data.ticketNumber,
+            name,
+            mobileMasked: maskMobile(mobile),
+            emailMasked: email,
+            passType: pass.code,
+            passName: pass.label,
+            passMode: 'OFFLINE',
+            persons: pass.persons,
+            price: pass.price,
+            spot: COLLECTION_SPOT.name,
+            spotAddress: COLLECTION_SPOT.address,
+            spotCity: COLLECTION_SPOT.city,
+            spotTimings: COLLECTION_SPOT.timings,
+            spotContact: COLLECTION_SPOT.contact_phone,
+            status: 'PRE_BOOKED',
+            paymentStatus: 'PENDING',
+            createdAt,
+            collectedAt: null,
+            checkedInAt: null,
+          },
+        });
+      }
+    }
+
+    // ---------------------------------------------------------
+    // STEP 5
+    // IMPORTANT RECOVERY
+    //
+    // Google Sheets may have saved the booking even if its
+    // response was malformed/empty/502.
+    //
+    // Check the register before telling the customer to retry.
+    // ---------------------------------------------------------
+
+    const recoveredBooking = await checkExistingBooking(
+      webhookToken,
+      mobile,
+      email
+    );
+
+    if (recoveredBooking) {
+      console.log(
+        '[Offline Booking] Booking recovered after uncertain response:',
+        recoveredBooking.ticketNumber
+      );
+
+      return jsonResponse({
+        success: true,
+        existing: true,
+        recovered: true,
+        ticket: buildTicketFromBooking(recoveredBooking),
       });
-    } catch (error) {
-      console.error(
-        '[Offline Booking] Google Sheets request failed:',
-        error
-      );
+    }
 
+    // ---------------------------------------------------------
+    // STEP 6
+    // Nothing was saved and we genuinely cannot complete it.
+    // ---------------------------------------------------------
+
+    if (bookingResult.networkError) {
       return jsonResponse(
         {
           success: false,
           error:
-            'Unable to connect to the booking register. Please try again.',
+            'Unable to reach the booking register. Please try again.',
         },
         502
       );
     }
 
-    let sheetsData;
-
-    try {
-      sheetsData = await sheetsResponse.json();
-    } catch {
-      console.error(
-        '[Offline Booking] Google Sheets returned invalid response.'
-      );
-
-      return jsonResponse(
-        {
-          success: false,
-          error:
-            'Booking register returned an invalid response. Please try again.',
-        },
-        502
-      );
-    }
-
-    // ---------------------------------------------------------
-    // 8. Make sure Google Sheets actually accepted the booking
-    // ---------------------------------------------------------
-    if (!sheetsResponse.ok || !sheetsData?.success) {
-      console.error(
-        '[Offline Booking] Google Sheets rejected booking:',
-        sheetsData
-      );
-
-      return jsonResponse(
-        {
-          success: false,
-          error:
-            sheetsData?.error ||
-            'Unable to save the booking in the register.',
-        },
-        502
-      );
-    }
-
-    // ---------------------------------------------------------
-    // 9. Build the virtual ticket response
-    // ---------------------------------------------------------
-    const ticket = {
-      ticketNo: ticketNumber,
-
-      name,
-      mobileMasked: `${mobile.slice(0, 2)}******${mobile.slice(-2)}`,
-      emailMasked: email,
-
-      passType: pass.code,
-      passName: pass.label,
-      passMode: 'OFFLINE',
-
-      persons: pass.persons,
-      price: pass.price,
-
-      spot: COLLECTION_SPOT.name,
-      spotAddress: COLLECTION_SPOT.address,
-      spotCity: COLLECTION_SPOT.city,
-      spotTimings: COLLECTION_SPOT.timings,
-      spotContact: COLLECTION_SPOT.contact_phone,
-
-      status: 'PRE_BOOKED',
-      paymentStatus: 'PENDING',
-
-      createdAt,
-
-      collectedAt: null,
-      checkedInAt: null,
-    };
-
-    // ---------------------------------------------------------
-    // 10. Return ticket to website
-    // ---------------------------------------------------------
-    return jsonResponse({
-      success: true,
-      ticket,
-    });
+    return jsonResponse(
+      {
+        success: false,
+        error:
+          'Unable to confirm the booking register. Please try again.',
+      },
+      502
+    );
   } catch (error) {
     console.error('[Offline Booking] Unexpected error:', error);
 
     return jsonResponse(
       {
         success: false,
-        error: 'Unable to complete offline booking. Please try again.',
+        error:
+          'Unable to complete offline booking. Please try again.',
       },
       500
     );
