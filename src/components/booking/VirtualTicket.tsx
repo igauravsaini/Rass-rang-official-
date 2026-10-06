@@ -41,24 +41,97 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const waitForTicketAssets = async () => {
+    // Wait for fonts
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    // Wait for images inside the ticket
+    const images = Array.from(
+      ticketRef.current?.querySelectorAll('img') || []
+    );
+
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete) return Promise.resolve();
+
+        return new Promise<void>((resolve) => {
+          img.addEventListener('load', () => resolve(), { once: true });
+          img.addEventListener('error', () => resolve(), { once: true });
+        });
+      })
+    );
+
+    // Give the browser one frame to finish rendering
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve())
+    );
+  };
+
   const handleDownloadPng = async () => {
     if (!ticketRef.current) return;
+
     try {
       setDownloadingPng(true);
+
+      await waitForTicketAssets();
+
       const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
-        backgroundColor: '#0a0412',
+
+      const ticketElement = ticketRef.current;
+
+      const canvas = await html2canvas(ticketElement, {
+        scale: 3,
         useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#0a0412',
+
+        width: ticketElement.scrollWidth,
+        height: ticketElement.scrollHeight,
+
+        windowWidth: Math.max(
+          document.documentElement.clientWidth,
+          ticketElement.scrollWidth
+        ),
+
+        windowHeight: Math.max(
+          document.documentElement.clientHeight,
+          ticketElement.scrollHeight
+        ),
+
+        onclone: (clonedDocument) => {
+          const clonedTicket =
+            clonedDocument.getElementById('virtualTicket');
+
+          if (!clonedTicket) return;
+
+          clonedTicket.style.height = 'auto';
+          clonedTicket.style.maxHeight = 'none';
+          clonedTicket.style.minHeight = '0';
+          clonedTicket.style.overflow = 'visible';
+          clonedTicket.style.transform = 'none';
+          clonedTicket.style.display = 'block';
+        },
       });
-      const dataUrl = canvas.toDataURL('image/png');
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+
       const link = document.createElement('a');
+
       link.download = `RaasRang-Ticket-${ticket.ticketNo}.png`;
       link.href = dataUrl;
+
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
     } catch (err) {
       console.error('[Download PNG] Failed:', err);
-      alert('Unable to generate ticket image. Please take a screenshot.');
+
+      alert(
+        'Unable to generate the complete ticket image. Please try again.'
+      );
     } finally {
       setDownloadingPng(false);
     }
@@ -66,30 +139,101 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
   const handleDownloadPdf = async () => {
     if (!ticketRef.current) return;
+
     try {
       setDownloadingPdf(true);
+
+      await waitForTicketAssets();
+
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
         import('html2canvas'),
-        import('jspdf')
+        import('jspdf'),
       ]);
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
-        backgroundColor: '#0a0412',
+
+      const ticketElement = ticketRef.current;
+
+      const canvas = await html2canvas(ticketElement, {
+        scale: 3,
         useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#0a0412',
+
+        width: ticketElement.scrollWidth,
+        height: ticketElement.scrollHeight,
+
+        windowWidth: Math.max(
+          document.documentElement.clientWidth,
+          ticketElement.scrollWidth
+        ),
+
+        windowHeight: Math.max(
+          document.documentElement.clientHeight,
+          ticketElement.scrollHeight
+        ),
+
+        onclone: (clonedDocument) => {
+          const clonedTicket =
+            clonedDocument.getElementById('virtualTicket');
+
+          if (!clonedTicket) return;
+
+          clonedTicket.style.height = 'auto';
+          clonedTicket.style.maxHeight = 'none';
+          clonedTicket.style.minHeight = '0';
+          clonedTicket.style.overflow = 'visible';
+          clonedTicket.style.transform = 'none';
+          clonedTicket.style.display = 'block';
+        },
       });
-      const imgData = canvas.toDataURL('image/png');
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      const pageWidth = 148;
+      const pageHeight = 210;
+      const margin = 5;
+
+      const availableWidth = pageWidth - margin * 2;
+      const availableHeight = pageHeight - margin * 2;
+
+      const imageRatio = canvas.width / canvas.height;
+
+      let imageWidth = availableWidth;
+      let imageHeight = imageWidth / imageRatio;
+
+      if (imageHeight > availableHeight) {
+        imageHeight = availableHeight;
+        imageWidth = imageHeight * imageRatio;
+      }
+
+      const x = (pageWidth - imageWidth) / 2;
+      const y = (pageHeight - imageHeight) / 2;
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a5',
+        compress: true,
       });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 5, pdfWidth, pdfHeight);
+
+      pdf.addImage(
+        imgData,
+        'PNG',
+        x,
+        y,
+        imageWidth,
+        imageHeight,
+        undefined,
+        'FAST'
+      );
+
       pdf.save(`RaasRang-Ticket-${ticket.ticketNo}.pdf`);
+
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
-      alert('Unable to generate PDF ticket. Please download the PNG instead.');
+
+      alert(
+        'Unable to generate the complete PDF ticket. Please try again.'
+      );
     } finally {
       setDownloadingPdf(false);
     }
