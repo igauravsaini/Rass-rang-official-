@@ -159,7 +159,63 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
+    // ---------------------------------------------------------
+    // OFFLINE PASS
+    // Offline booking has its own trusted backend configuration.
+    // It does not need Supabase /api/config.
+    // ---------------------------------------------------------
+    if (activeTab === 'offline') {
+      setConfigError(null);
+
+      setPasses([
+        {
+          id: 1,
+          code: 'SIGMA',
+          label: 'Sigma Pass (Single Person)',
+          persons: 1,
+          price: 499,
+        },
+        {
+          id: 2,
+          code: 'COUPLE',
+          label: 'Couple Pass (2 Persons)',
+          persons: 2,
+          price: 899,
+        },
+        {
+          id: 3,
+          code: 'FAMILY',
+          label: 'Family Pass (4 Persons)',
+          persons: 4,
+          price: 1699,
+        },
+      ]);
+
+      setSpots([
+        {
+          id: 1,
+          name: 'Caha Gorakhpur',
+          address:
+            'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
+          city: 'Gorakhpur',
+          contact_person: 'Festival Helpdesk',
+          contact_phone: '9876543210',
+          timings: '10:00 AM – 08:00 PM (Daily)',
+        },
+      ]);
+
+      setSelectedSpotId(1);
+      setConfigLoading(false);
+
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // ONLINE PASS
+    // Keep the existing Supabase-backed configuration flow.
+    // ---------------------------------------------------------
     let isMounted = true;
+
     setConfigLoading(true);
     setConfigError(null);
 
@@ -179,19 +235,40 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       })
       .catch((err) => {
         if (!isMounted) return;
+
         console.error('[Config Fetch] Error:', err);
-        setConfigError('Unable to load server config. Using offline collection desk.');
-        // Sensible fallbacks
+        setConfigError('Unable to load server config.');
+
+        // Keep the existing fallback so the form remains usable.
         setPasses([
-          { id: 1, code: 'SIGMA', label: 'Sigma Pass (Single Person)', persons: 1, price: 499 },
-          { id: 2, code: 'COUPLE', label: 'Couple Pass (2 Persons)', persons: 2, price: 899 },
-          { id: 3, code: 'FAMILY', label: 'Family Pass (4 Persons)', persons: 4, price: 1699 },
+          {
+            id: 1,
+            code: 'SIGMA',
+            label: 'Sigma Pass (Single Person)',
+            persons: 1,
+            price: 499,
+          },
+          {
+            id: 2,
+            code: 'COUPLE',
+            label: 'Couple Pass (2 Persons)',
+            persons: 2,
+            price: 899,
+          },
+          {
+            id: 3,
+            code: 'FAMILY',
+            label: 'Family Pass (4 Persons)',
+            persons: 4,
+            price: 1699,
+          },
         ]);
         setSpots([
           {
             id: 1,
             name: 'Caha Gorakhpur',
-            address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
+            address:
+              'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
             city: 'Gorakhpur',
             contact_person: 'Festival Helpdesk',
             contact_phone: '9876543210',
@@ -201,13 +278,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         setSelectedSpotId(1);
       })
       .finally(() => {
-        if (isMounted) setConfigLoading(false);
+        if (isMounted) {
+          setConfigLoading(false);
+        }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
 
   // Handle Booking Submit
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -432,7 +511,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 )}
 
-                {configError && (
+                {configError && activeTab === 'online' && (
                   <div className="booking-alert warning" role="alert">
                     ℹ️ {configError}
                   </div>
