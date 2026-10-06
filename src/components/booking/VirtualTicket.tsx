@@ -231,15 +231,13 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
             align-items: center !important;
           }
 
-          /* -------------------------------------------------------
-             RESERVATION NUMBER — EXPORT ALIGNMENT
-          ------------------------------------------------------- */
+          /* =======================================================
+             RESERVATION NUMBER — FINAL EXPORT FIX
+          ======================================================= */
 
           #virtualTicket .vt-number-box {
             width: 100% !important;
             box-sizing: border-box !important;
-
-            position: relative !important;
 
             display: flex !important;
             flex-direction: column !important;
@@ -248,59 +246,72 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
             text-align: center !important;
 
-            padding: 22px 28px 18px !important;
+            padding: 18px 24px 16px !important;
 
             overflow: hidden !important;
           }
 
+          /* Label above gold strip */
           #virtualTicket .vt-number-label {
-            position: relative !important;
-            z-index: 5 !important;
-
-            display: block !important;
-            width: 100% !important;
-
-            text-align: center !important;
-
-            line-height: 1.15 !important;
-
-            margin: 0 0 8px !important;
-          }
-
-          #virtualTicket .vt-ticket-no {
-            position: relative !important;
-            z-index: 6 !important;
-
             display: block !important;
 
             width: 100% !important;
-            box-sizing: border-box !important;
 
-            text-align: center !important;
-            white-space: nowrap !important;
-
-            font-size: 42px !important;
-            line-height: 1 !important;
-
+            margin: 0 0 7px !important;
             padding: 0 !important;
-            margin: 0 0 8px !important;
-
-            overflow: visible !important;
-          }
-
-          #virtualTicket .vt-number-note {
-            position: relative !important;
-            z-index: 5 !important;
-
-            display: block !important;
-            width: 100% !important;
 
             text-align: center !important;
 
             font-size: 14px !important;
-            line-height: 1.3 !important;
+            line-height: 1.15 !important;
+
+            position: relative !important;
+            z-index: 10 !important;
+          }
+
+          /* Reservation number */
+          #virtualTicket .vt-ticket-no {
+            display: flex !important;
+
+            align-items: center !important;
+            justify-content: center !important;
+
+            width: 100% !important;
+            height: 62px !important;
+
+            box-sizing: border-box !important;
 
             margin: 0 !important;
+            padding: 0 12px !important;
+
+            text-align: center !important;
+            white-space: nowrap !important;
+
+            font-size: 30px !important;
+            line-height: 1 !important;
+
+            position: relative !important;
+            z-index: 20 !important;
+
+            overflow: hidden !important;
+          }
+
+          /* Small instruction below number */
+          #virtualTicket .vt-number-note {
+            display: block !important;
+
+            width: 100% !important;
+
+            margin: 7px 0 0 !important;
+            padding: 0 !important;
+
+            text-align: center !important;
+
+            font-size: 12px !important;
+            line-height: 1.25 !important;
+
+            position: relative !important;
+            z-index: 10 !important;
           }
 
           /* Details */
