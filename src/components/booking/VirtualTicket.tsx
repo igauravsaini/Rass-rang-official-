@@ -231,35 +231,47 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
             align-items: center !important;
           }
 
-          /* Reservation number section */
+          /* -------------------------------------------------------
+             RESERVATION NUMBER — EXPORT ALIGNMENT
+          ------------------------------------------------------- */
+
           #virtualTicket .vt-number-box {
             width: 100% !important;
             box-sizing: border-box !important;
+
             position: relative !important;
+
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
+
             text-align: center !important;
+
+            padding: 22px 28px 18px !important;
+
             overflow: hidden !important;
           }
 
           #virtualTicket .vt-number-label {
             position: relative !important;
             z-index: 5 !important;
+
             display: block !important;
             width: 100% !important;
+
             text-align: center !important;
-            line-height: 1.2 !important;
+
+            line-height: 1.15 !important;
+
+            margin: 0 0 8px !important;
           }
 
           #virtualTicket .vt-ticket-no {
             position: relative !important;
             z-index: 6 !important;
 
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            display: block !important;
 
             width: 100% !important;
             box-sizing: border-box !important;
@@ -267,11 +279,11 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
             text-align: center !important;
             white-space: nowrap !important;
 
-            font-size: 48px !important;
-            line-height: 1.05 !important;
+            font-size: 42px !important;
+            line-height: 1 !important;
 
-            padding: 8px 20px !important;
-            margin: 8px 0 !important;
+            padding: 0 !important;
+            margin: 0 0 8px !important;
 
             overflow: visible !important;
           }
@@ -284,7 +296,11 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
             width: 100% !important;
 
             text-align: center !important;
-            line-height: 1.35 !important;
+
+            font-size: 14px !important;
+            line-height: 1.3 !important;
+
+            margin: 0 !important;
           }
 
           /* Details */
