@@ -64,7 +64,7 @@ Do **not** add UI kits (MUI, Chakra, shadcn, Bootstrap, etc.) — they will chan
 Re-implement each behavior with React hooks. Behavior must match the original exactly.
 
 1. **Sticky/transparent navbar** – style change on scroll, active-link highlight by section (use `IntersectionObserver`), mobile hamburger menu open/close, closes on link click, smooth scrolling to anchors (`#home #about #events #schedule #tickets #sponsors #gallery #contact`). "Book Now" CTA in nav → `#tickets`.
-2. **Hero** – emblem/logo, ornaments (`❧`), Devanagari tagline, venue/date/time info blocks (✦ Venue ✦ / ✦ Date ✦ / ✦ Time ✦), three CTAs (Book Tickets, Become Sponsor, Explore Event), "Scroll to Discover" indicator, hero background image `hero-bg.jpg`.
+2. **Hero** – emblem/logo, ornaments (`❧`), Devanagari tagline, venue/date/time info blocks (✦ Venue ✦ / ✦ Date ✦ / ✦ Time ✦), three CTAs (Book Tickets, Become Sponsor, Explore Event), hero background image `hero-bg.jpg`.
 3. **Countdown timer** – counts down to **17 Oct 2026, 18:00 IST (UTC+05:30)**. Show Days / Hours / Minutes / Seconds with zero-padding. Must be timezone-safe (always target IST, not the viewer's local time). Clean up the interval on unmount. Handle "event started" state without showing negatives.
 4. **Scroll-reveal animations** – elements fade/slide in when entering viewport. Build a reusable `<Reveal>` component or `useInView` hook using `IntersectionObserver`; replicate the original delays/stagger/transition exactly.
 5. **Animated counters** ("By the Numbers" – Expected Footfall, Regional Digital Reach, Youth & Professionals count up from 0). Trigger once on first view. Use the **same target values, suffixes (+, K, etc.), duration and easing** as the original JS.
