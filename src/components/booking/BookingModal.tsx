@@ -110,16 +110,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
   }, []);
 
-  const handleAnimatedClose = () => {
-    if (animationState === 'exiting') return;
-    setAnimationState('exiting');
-    document.body.classList.remove('booking-overlay-active');
-    setTimeout(() => {
-      setAnimationState('exited');
-      setIsRendered(false);
-      onClose();
-    }, 240);
-  };
+ const handleAnimatedClose = () => {
+  if (animationState === 'exiting') return;
+
+  setAnimationState('exiting');
+  document.body.classList.remove('booking-overlay-active');
+
+  setTimeout(() => {
+    setActiveTicket(null);
+
+    setName('');
+    setMobile('');
+    setEmail('');
+    setTermsAccepted(false);
+    setFormError(null);
+
+    setLookupTicketNo('');
+    setLookupMobileLast4('');
+    setLookupError(null);
+
+    setAnimationState('exited');
+    setIsRendered(false);
+    onClose();
+  }, 240);
+};
 
   // Close on Escape key
   useEffect(() => {
@@ -137,17 +151,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   useLockBodyScroll(isRendered);
 
   // Restore ticket from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('raas_rang_active_ticket');
-      if (saved) {
-        setActiveTicket(JSON.parse(saved));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
+  
   // Update selected pass if defaultPass prop changes
   useEffect(() => {
     if (defaultPass) {
@@ -350,11 +354,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
       // Success
       setActiveTicket(enrichedTicket);
-      try {
-        localStorage.setItem('raas_rang_active_ticket', JSON.stringify(enrichedTicket));
-      } catch {
-        // ignore
-      }
     } catch (err: any) {
       setFormError(err.message || 'Something went wrong. Please check your connection.');
     } finally {
