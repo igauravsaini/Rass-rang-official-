@@ -161,12 +161,13 @@ async function callGoogleSheets(payload) {
   };
 }
 
-async function checkExistingBooking(webhookToken, mobile, email) {
+async function checkExistingBooking(webhookToken, mobile, email, passType) {
   const result = await callGoogleSheets({
     webhookToken,
     action: 'CHECK_EXISTING',
     mobile,
     email,
+    passType,
   });
 
   if (
@@ -294,7 +295,8 @@ export async function onRequestPost(context) {
     const existingBooking = await checkExistingBooking(
       webhookToken,
       mobile,
-      email
+      email,
+      passType
     );
 
     if (existingBooking) {
@@ -425,7 +427,8 @@ export async function onRequestPost(context) {
     const recoveredBooking = await checkExistingBooking(
       webhookToken,
       mobile,
-      email
+      email,
+      passType
     );
 
     if (recoveredBooking) {
