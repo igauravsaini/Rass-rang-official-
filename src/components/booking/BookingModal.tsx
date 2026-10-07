@@ -130,16 +130,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
   }, []);
 
-  const handleAnimatedClose = () => {
-    if (animationState === 'exiting') return;
-    setAnimationState('exiting');
-    document.body.classList.remove('booking-overlay-active');
-    setTimeout(() => {
-      setAnimationState('exited');
-      setIsRendered(false);
-      onClose();
-    }, 240);
-  };
+ const handleAnimatedClose = () => {
+  if (animationState === 'exiting') return;
+
+  setAnimationState('exiting');
+  document.body.classList.remove('booking-overlay-active');
+
+  setTimeout(() => {
+    setActiveTicket(null);
+
+    setName('');
+    setMobile('');
+    setEmail('');
+    setTermsAccepted(false);
+    setFormError(null);
+
+    setLookupTicketNo('');
+    setLookupMobileLast4('');
+    setLookupError(null);
+
+    setAnimationState('exited');
+    setIsRendered(false);
+    onClose();
+  }, 240);
+};
 
   // Close on Escape key
   useEffect(() => {
@@ -157,17 +171,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   useLockBodyScroll(isRendered);
 
   // Restore ticket from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('raas_rang_active_ticket');
-      if (saved) {
-        setActiveTicket(JSON.parse(saved));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
+  
   // Update selected pass if defaultPass prop changes
   useEffect(() => {
     if (defaultPass) {
@@ -179,7 +183,62 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
+    // ---------------------------------------------------------
+    // OFFLINE PASS
+    // Never call /api/config for offline bookings.
+    // ---------------------------------------------------------
+    if (activeTab === 'offline') {
+      setConfigError(null);
+
+      setPasses([
+        {
+          id: 1,
+          code: 'SIGMA',
+          label: 'Sigma Pass (Single Person)',
+          persons: 1,
+          price: 499,
+        },
+        {
+          id: 2,
+          code: 'COUPLE',
+          label: 'Couple Pass (2 Persons)',
+          persons: 2,
+          price: 899,
+        },
+        {
+          id: 3,
+          code: 'FAMILY',
+          label: 'Family Pass (4 Persons)',
+          persons: 4,
+          price: 1699,
+        },
+      ]);
+
+      setSpots([
+        {
+          id: 1,
+          name: 'Caha Gorakhpur',
+          address:
+            'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
+          city: 'Gorakhpur',
+          contact_person: 'Festival Helpdesk',
+          contact_phone: '9876543210',
+          timings: '10:00 AM – 08:00 PM (Daily)',
+        },
+      ]);
+
+      setSelectedSpotId(1);
+      setConfigLoading(false);
+
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // ONLINE PASS
+    // Keep the existing Supabase-backed configuration.
+    // ---------------------------------------------------------
     let isMounted = true;
+
     setConfigLoading(true);
     setConfigError(null);
 
@@ -187,31 +246,53 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       .then((res) => safeParseJson(res))
       .then((data) => {
         if (!isMounted) return;
-        if (data.success) {
-          setPasses(data.passes || []);
-          setSpots(data.spots || []);
-          if (data.spots && data.spots.length > 0 && selectedSpotId === '') {
-            setSelectedSpotId(data.spots[0].id);
-          }
-        } else {
+
+        if (!data.success) {
           throw new Error(data.error || 'Server error loading passes');
+        }
+
+        setPasses(data.passes || []);
+        setSpots(data.spots || []);
+
+        if (data.spots?.length > 0 && selectedSpotId === '') {
+          setSelectedSpotId(data.spots[0].id);
         }
       })
       .catch((err) => {
         if (!isMounted) return;
+
         console.error('[Config Fetch] Error:', err);
-        setConfigError('Unable to load server config. Using offline collection desk.');
-        // Sensible fallbacks
+        setConfigError('Unable to load server config.');
+
         setPasses([
-          { id: 1, code: 'SIGMA', label: 'Sigma Pass (Single Person)', persons: 1, price: 499 },
-          { id: 2, code: 'COUPLE', label: 'Couple Pass (2 Persons)', persons: 2, price: 899 },
-          { id: 3, code: 'FAMILY', label: 'Family Pass (4 Persons)', persons: 4, price: 1699 },
+          {
+            id: 1,
+            code: 'SIGMA',
+            label: 'Sigma Pass (Single Person)',
+            persons: 1,
+            price: 499,
+          },
+          {
+            id: 2,
+            code: 'COUPLE',
+            label: 'Couple Pass (2 Persons)',
+            persons: 2,
+            price: 899,
+          },
+          {
+            id: 3,
+            code: 'FAMILY',
+            label: 'Family Pass (4 Persons)',
+            persons: 4,
+            price: 1699,
+          },
         ]);
         setSpots([
           {
             id: 1,
             name: 'Caha Gorakhpur',
-            address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
+            address:
+              'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
             city: 'Gorakhpur',
             contact_person: 'Festival Helpdesk',
             contact_phone: '9876543210',
@@ -221,13 +302,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         setSelectedSpotId(1);
       })
       .finally(() => {
-        if (isMounted) setConfigLoading(false);
+        if (isMounted) {
+          setConfigLoading(false);
+        }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, activeTab]);
 
   // Handle Booking Submit
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -258,27 +341,54 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/book-ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          mobile: mobile.trim(),
-          email: email.trim(),
-          passType: selectedPass,
-          passMode,
-          spotId: spotToUse,
-          termsAccepted: true,
-          turnstileToken: turnstileToken || undefined,
-        }),
-      });
+      const endpoint =
+     activeTab === 'offline'
+    ? '/api/offline-booking'
+    : '/api/book-ticket';
 
-      const data = await safeParseJson(res);
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        email: email.trim(),
+        passType: selectedPass,
+        passMode,
+        spotId: spotToUse,
+        termsAccepted: true,
+        turnstileToken: turnstileToken || undefined,
+      }),
+    });
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete pass issuance.');
-      }
+    const data = await safeParseJson(res);
 
+    // ---------------------------------------------------------
+    // OFFLINE DUPLICATE REGISTRATION
+    // The backend found an existing active reservation for the
+    // same mobile + email combination.
+    // Do NOT show the existing ticket.
+    // ---------------------------------------------------------
+    if (
+      activeTab === 'offline' &&
+      res.status === 409 &&
+      data.code === 'ALREADY_REGISTERED'
+    ) {
+      setFormError(
+        'This mobile number and email are already registered for an offline pass. Please use different details, or use “Find My Ticket” to access your existing reservation.'
+      );
+
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // OTHER ERRORS
+    // ---------------------------------------------------------
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.error || 'Failed to complete pass issuance.'
+      );
+    }
       const enrichedTicket: VirtualTicketData = {
         ...data.ticket,
         passMode: passMode === 'online' ? 'ONLINE' : 'OFFLINE',
@@ -286,11 +396,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
       // Success
       setActiveTicket(enrichedTicket);
-      try {
-        localStorage.setItem('raas_rang_active_ticket', JSON.stringify(enrichedTicket));
-      } catch {
-        // ignore
-      }
     } catch (err: any) {
       setFormError(err.message || 'Something went wrong. Please check your connection.');
     } finally {
@@ -447,7 +552,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 )}
 
-                {configError && (
+                {configError && activeTab === 'online' && (
                   <div className="booking-alert warning" role="alert">
                     ℹ️ {configError}
                   </div>

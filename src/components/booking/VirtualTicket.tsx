@@ -103,10 +103,370 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     });
 
     return () => cleanups.forEach((fn) => fn());
+  const waitForTicketAssets = async () => {
+    // Wait for web fonts
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    // Wait for images inside the ticket
+    const images = Array.from(
+      ticketRef.current?.querySelectorAll('img') || []
+    );
+
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          return Promise.resolve();
+        }
+
+        return new Promise<void>((resolve) => {
+          const done = () => resolve();
+
+          img.addEventListener('load', done, { once: true });
+          img.addEventListener('error', done, { once: true });
+        });
+      })
+    );
+
+    // Make sure QR canvas has been painted
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve())
+    );
+
+    // One additional frame for browser layout/paint
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve())
+    );
+  };
+
+  const captureTicket = async () => {
+    if (!ticketRef.current) {
+      throw new Error('Ticket element is not available.');
+    }
+
+    await waitForTicketAssets();
+
+    const { default: html2canvas } = await import('html2canvas');
+
+    const element = ticketRef.current;
+
+    const canvas = await html2canvas(element, {
+      scale: 3,
+
+      useCORS: true,
+      allowTaint: false,
+
+      backgroundColor: '#12030a',
+
+      // Important for tickets inside a modal/scroll container
+      scrollX: 0,
+      scrollY: 0,
+
+      windowWidth: Math.max(
+        document.documentElement.clientWidth,
+        element.scrollWidth,
+        1200
+      ),
+
+      windowHeight: Math.max(
+        document.documentElement.clientHeight,
+        element.scrollHeight,
+        1600
+      ),
+
+      logging: false,
+
+      foreignObjectRendering: false,
+
+      onclone: (clonedDocument) => {
+        const clonedTicket = clonedDocument.querySelector(
+          '#virtualTicket'
+        ) as HTMLElement | null;
+
+        if (!clonedTicket) {
+          return;
+        }
+
+        let current: HTMLElement | null = clonedTicket;
+
+        while (current) {
+          current.style.opacity = '1';
+          current.style.transform = 'none';
+          current.style.filter = 'none';
+          current.style.webkitFilter = 'none';
+          current.style.backdropFilter = 'none';
+          current.style.setProperty('-webkit-backdrop-filter', 'none');
+          current.style.visibility = 'visible';
+          current.style.animation = 'none';
+          current.style.transition = 'none';
+          current.style.maxHeight = 'none';
+          current.style.overflow = 'visible';
+
+          current = current.parentElement;
+        }
+
+        clonedTicket.style.position = 'relative';
+        clonedTicket.style.display = 'block';
+        clonedTicket.style.visibility = 'visible';
+        clonedTicket.style.opacity = '1';
+        clonedTicket.style.transform = 'none';
+        clonedTicket.style.filter = 'none';
+        clonedTicket.style.background =
+          'radial-gradient(ellipse at center, #240510 0%, #12030a 60%, #060105 100%)';
+
+        clonedTicket.style.minHeight = '0';
+
+        clonedTicket.style.boxSizing = 'border-box';
+        clonedTicket.style.overflow = 'visible';
+
+        const qrCanvas =
+          clonedTicket.querySelector(
+            '.vt-qr-canvas'
+          ) as HTMLCanvasElement | null;
+
+        if (qrCanvas) {
+          qrCanvas.style.display = 'block';
+          qrCanvas.style.visibility = 'visible';
+          qrCanvas.style.opacity = '1';
+          qrCanvas.style.width = '170px';
+          qrCanvas.style.height = '170px';
+        }
+
+        const qrContainer =
+          clonedTicket.querySelector(
+            '.vt-qr-container'
+          ) as HTMLElement | null;
+
+        if (qrContainer) {
+          qrContainer.style.background = '#ffffff';
+          qrContainer.style.opacity = '1';
+          qrContainer.style.visibility = 'visible';
+        }
+
+        const logo =
+          clonedTicket.querySelector(
+            '.vt-logo-img'
+          ) as HTMLImageElement | null;
+
+        if (logo) {
+          logo.style.display = 'block';
+          logo.style.visibility = 'visible';
+          logo.style.opacity = '1';
+        }
+
+        const allElements =
+          clonedTicket.querySelectorAll<HTMLElement>('*');
+
+        allElements.forEach((child) => {
+          child.style.animation = 'none';
+          child.style.transition = 'none';
+        });
+
+        // -------------------------------------------------------
+        // EXPORT-ONLY ALIGNMENT FIXES
+        // -------------------------------------------------------
+
+        const exportStyle =
+          clonedDocument.createElement('style');
+
+        exportStyle.textContent = `
+          /* Keep the exported ticket at a stable desktop width */
+          #virtualTicket {
+            width: 700px !important;
+            max-width: 700px !important;
+            min-width: 700px !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+          }
+
+          /* Header */
+          #virtualTicket .vt-header {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            align-items: center !important;
+          }
+
+          #virtualTicket .vt-logo-row {
+            display: flex !important;
+            align-items: center !important;
+          }
+
+          /* =======================================================
+             RESERVATION NUMBER — FINAL EXPORT FIX
+          ======================================================= */
+
+          #virtualTicket .vt-number-box {
+            width: 100% !important;
+            box-sizing: border-box !important;
+
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+
+            text-align: center !important;
+
+            padding: 18px 24px 20px !important;
+
+            overflow: hidden !important;
+          }
+
+          /* Label above gold strip */
+          #virtualTicket .vt-number-label {
+            display: block !important;
+
+            width: 100% !important;
+
+            margin: 0 0 7px !important;
+            padding: 0 !important;
+
+            text-align: center !important;
+
+            font-size: 14px !important;
+            line-height: 1.15 !important;
+
+            position: relative !important;
+            z-index: 10 !important;
+          }
+
+          /* Reservation number */
+         #virtualTicket .vt-ticket-no {
+          display: flex !important;
+
+          align-items: center !important;
+          justify-content: center !important;
+
+          width: 100% !important;
+
+          /* Make the gold area taller */
+          height: 82px !important;
+          min-height: 82px !important;
+
+          box-sizing: border-box !important;
+
+          margin: 0 !important;
+          padding: 6px 20px !important;
+
+          text-align: center !important;
+          white-space: nowrap !important;
+
+          font-size: 30px !important;
+          line-height: 1 !important;
+
+          position: relative !important;
+          z-index: 20 !important;
+
+          overflow: visible !important;
+        }
+
+          /* Small instruction below number */
+          #virtualTicket .vt-number-note {
+            display: block !important;
+
+            width: 100% !important;
+
+            margin: 7px 0 0 !important;
+            padding: 0 !important;
+
+            text-align: center !important;
+
+            font-size: 12px !important;
+            line-height: 1.25 !important;
+
+            position: relative !important;
+            z-index: 10 !important;
+          }
+
+          /* Details */
+          #virtualTicket .vt-details-grid {
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+
+          #virtualTicket .vt-detail-item {
+            box-sizing: border-box !important;
+            min-width: 0 !important;
+          }
+
+          #virtualTicket .vt-val {
+            overflow-wrap: break-word !important;
+            word-break: normal !important;
+          }
+
+          /* Collection spot */
+          #virtualTicket .vt-detail-item.full-width {
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+
+          #virtualTicket .vt-spot-address {
+            line-height: 1.45 !important;
+          }
+
+          #virtualTicket .vt-spot-timings {
+            line-height: 1.4 !important;
+          }
+
+          /* QR */
+          #virtualTicket .vt-qr-section {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+          }
+
+          #virtualTicket .vt-qr-container {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+
+          /* Footer */
+          #virtualTicket .vt-footer {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            padding-top: 20px !important;
+            padding-bottom: 16px !important;
+          }
+
+          #virtualTicket .vt-notice {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            line-height: 1.45 !important;
+          }
+
+          #virtualTicket .vt-event-info {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 24px !important;
+            flex-wrap: wrap !important;
+            text-align: center !important;
+            line-height: 1.4 !important;
+          }
+        `;
+
+        clonedDocument.head.appendChild(exportStyle);
+      },
+    });
+
+    return canvas;
   };
 
   const handleDownloadPng = async () => {
     if (!ticketRef.current) return;
+
     try {
       setDownloadingPng(true);
       const { default: html2canvas } = await import('html2canvas');
@@ -129,12 +489,26 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       const link = document.createElement('a');
       link.download = `RaasRang-Pass-${ticket.ticketNo}.png`;
       link.href = dataUrl;
+
+      const canvas = await captureTicket();
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+
+      const link = document.createElement('a');
+
+      link.download = `RaasRang-Ticket-${ticket.ticketNo}.png`;
+      link.href = dataUrl;
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (err) {
       console.error('[Download PNG] Failed:', err);
       alert('Unable to generate ticket image. Please take a screenshot instead.');
+
+      alert(
+        'Unable to generate the ticket image. Please try again.'
+      );
     } finally {
       setDownloadingPng(false);
     }
@@ -142,6 +516,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
   const handleDownloadPdf = async () => {
     if (!ticketRef.current) return;
+
     try {
       setDownloadingPdf(true);
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
@@ -170,6 +545,38 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       const pdfW = 148; // A5 width in mm
       const pdfH = pdfW / imgAspect;
 
+      const [{ default: jsPDF }, canvas] =
+        await Promise.all([
+          import('jspdf').then((module) => ({
+            default: module.jsPDF,
+          })),
+          captureTicket(),
+        ]);
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      // A5 portrait
+      const pageWidth = 148;
+      const pageHeight = 210;
+
+      const margin = 5;
+
+      const availableWidth = pageWidth - margin * 2;
+      const availableHeight = pageHeight - margin * 2;
+
+      const ratio = canvas.width / canvas.height;
+
+      let imageWidth = availableWidth;
+      let imageHeight = imageWidth / ratio;
+
+      if (imageHeight > availableHeight) {
+        imageHeight = availableHeight;
+        imageWidth = imageHeight * ratio;
+      }
+
+      const x = (pageWidth - imageWidth) / 2;
+      const y = (pageHeight - imageHeight) / 2;
+
       const pdf = new jsPDF({
         orientation: pdfH > pdfW ? 'portrait' : 'landscape',
         unit: 'mm',
@@ -181,6 +588,33 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
       alert('Unable to generate PDF. Please download the PNG instead.');
+        format: 'a5',
+        compress: true,
+      });
+
+      pdf.setFillColor(18, 3, 10);
+      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      pdf.addImage(
+        imgData,
+        'PNG',
+        x,
+        y,
+        imageWidth,
+        imageHeight,
+        undefined,
+        'FAST'
+      );
+
+      pdf.save(
+        `RaasRang-Ticket-${ticket.ticketNo}.pdf`
+      );
+    } catch (err) {
+      console.error('[Download PDF] Failed:', err);
+
+      alert(
+        'Unable to generate the ticket PDF. Please try again.'
+      );
     } finally {
       setDownloadingPdf(false);
     }
