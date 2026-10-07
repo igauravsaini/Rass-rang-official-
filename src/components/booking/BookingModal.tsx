@@ -15,9 +15,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
   defaultPass = 'COUPLE',
-  defaultMode = 'online',
+  defaultMode = 'offline',
 }) => {
-  const [activeTab, setActiveTab] = useState<'online' | 'offline' | 'lookup'>(defaultMode || 'online');
+  const [activeTab, setActiveTab] = useState<'online' | 'offline' | 'lookup'>(defaultMode || 'offline');
 
   // Config data loaded from backend
   const [passes, setPasses] = useState<PassItem[]>([]);
@@ -48,6 +48,26 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   // Completed or Restored Ticket
   const [activeTicket, setActiveTicket] = useState<VirtualTicketData | null>(null);
+
+  // Instagram DM Toast & Flow
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
+
+  const handleInstagramDM = () => {
+    const passObj = passes.find((p) => p.code === selectedPass);
+    const passPrice = passObj ? passObj.price : selectedPass === 'SIGMA' ? 499 : selectedPass === 'FAMILY' ? 1699 : 899;
+    const message = `Hi! I want to buy 1 ${selectedPass} Pass (₹${passPrice}) for Raas~Rang 2026.`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(message).catch(() => {});
+    }
+
+    setShowCopiedToast(true);
+    setTimeout(() => {
+      setShowCopiedToast(false);
+    }, 3500);
+
+    window.open('https://ig.me/m/raasrang_gkp', '_blank', 'noopener,noreferrer');
+  };
 
   // Sync mode when defaultMode or modal open changes
   useEffect(() => {
@@ -380,7 +400,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </h2>
               <p className="booking-modal-subtitle">
                 {activeTab === 'online'
-                  ? 'Instant digital entry pass with QR code. Direct smartphone entry at Mahant Digvijaynath Park — zero waiting.'
+                  ? 'Online pass purchase is launching soon. DM our official Instagram desk to purchase your pass instantly!'
                   : activeTab === 'offline'
                   ? 'Reserve your physical entry wristbands with zero online payment. Pay & collect at Caha Gorakhpur (Taramandal).'
                   : 'Already reserved an online or offline pass? Enter your ticket number and mobile last 4 digits to view and download it.'}
@@ -389,15 +409,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
             {/* Navigation Tabs */}
             <div className="booking-tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'online'}
-                className={`booking-tab ${activeTab === 'online' ? 'active' : ''}`}
-                onClick={() => setActiveTab('online')}
-              >
-                🌐 Get Online Pass
-              </button>
               <button
                 type="button"
                 role="tab"
@@ -410,6 +421,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <button
                 type="button"
                 role="tab"
+                aria-selected={activeTab === 'online'}
+                className={`booking-tab ${activeTab === 'online' ? 'active' : ''}`}
+                onClick={() => setActiveTab('online')}
+              >
+                🌐 Get Online Pass
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={activeTab === 'lookup'}
                 className={`booking-tab ${activeTab === 'lookup' ? 'active' : ''}`}
                 onClick={() => setActiveTab('lookup')}
@@ -418,8 +438,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </button>
             </div>
 
-            {activeTab === 'online' || activeTab === 'offline' ? (
-              /* TAB 1 & 2: PASS BOOKING FORM (ONLINE OR OFFLINE) */
+            {activeTab === 'offline' ? (
+              /* TAB 1: PASS BOOKING FORM (OFFLINE) */
               <form onSubmit={handleBookingSubmit} className="booking-form" noValidate>
                 {formError && (
                   <div className="booking-alert error" role="alert">
@@ -508,37 +528,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 </div>
 
-                {/* 3. Spot / Gate Entry Info (Online vs Single Offline Spot) */}
-                {activeTab === 'online' ? (
-                  <div className="form-group">
-                    <label>Gate Entry & Access</label>
-                    <div className="spot-preview-card online-spot">
-                      <div className="spot-badge-tag">📲 Instant Digital QR E-Pass</div>
-                      <div className="spot-card-title">📍 Direct QR Gate Entry at Mahant Digvijaynath Park</div>
-                      <div className="spot-card-address">
-                        Your digital QR e-pass will be generated immediately upon confirmation. Simply present it on your mobile screen at the festival gate. No physical pickup required!
-                      </div>
+                {/* 3. Spot Info */}
+                <div className="form-group">
+                  <label htmlFor="bk-spot">
+                    Official Ticket Collection Spot <span className="req">*</span>
+                  </label>
+                  <div className="spot-preview-card offline-spot">
+                    <div className="spot-badge-tag">🏢 Official Collection Counter (Single Authorized Spot)</div>
+                    <div className="spot-card-title">📍 Caha Gorakhpur</div>
+                    <div className="spot-card-address">
+                      Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017
                     </div>
-                  </div>
-                ) : (
-                  <div className="form-group">
-                    <label htmlFor="bk-spot">
-                      Official Ticket Collection Spot <span className="req">*</span>
-                    </label>
-                    <div className="spot-preview-card offline-spot">
-                      <div className="spot-badge-tag">🏢 Official Collection Counter (Single Authorized Spot)</div>
-                      <div className="spot-card-title">📍 Caha Gorakhpur</div>
-                      <div className="spot-card-address">
-                        Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017
-                      </div>
-                      <div className="spot-card-meta">
-                        <span>🕒 Timings: 10:00 AM – 08:00 PM (Daily)</span>
-                        <span>📞 Helpdesk: 9876543210</span>
-                      </div>
-                      <span className="spot-card-note">💡 Present your reservation number here to make payment and collect physical entry wristbands.</span>
+                    <div className="spot-card-meta">
+                      <span>🕒 Timings: 10:00 AM – 08:00 PM (Daily)</span>
+                      <span>📞 Helpdesk: 9876543210</span>
                     </div>
+                    <span className="spot-card-note">💡 Present your reservation number here to make payment and collect physical entry wristbands.</span>
                   </div>
-                )}
+                </div>
 
                 {/* 4. Terms Checkbox */}
                 <div className="terms-checkbox-wrap">
@@ -551,15 +558,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       required
                     />
                     <span>
-                      {activeTab === 'online' ? (
-                        <>
-                          I confirm that my attendee details are accurate. I will present this <strong>official digital pass with QR code</strong> on my phone at the venue gate on 17 October 2026.
-                        </>
-                      ) : (
-                        <>
-                          I understand that this is an <strong>offline pass reservation</strong>. I agree to show my pass reservation number at <strong>Caha Gorakhpur (Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal)</strong> to complete payment and collect physical entry wristbands.
-                        </>
-                      )}
+                      I understand that this is an <strong>offline pass reservation</strong>. I agree to show my pass reservation number at <strong>Caha Gorakhpur (Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal)</strong> to complete payment and collect physical entry wristbands.
                     </span>
                   </label>
                 </div>
@@ -579,16 +578,82 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 >
                   {isSubmitting ? (
                     <span className="btn-loading-state">
-                      <span className="spinner"></span>{' '}
-                      {activeTab === 'online' ? 'Generating Online Pass...' : 'Reserving Offline Pass...'}
+                      <span className="spinner"></span> Reserving Offline Pass...
                     </span>
-                  ) : activeTab === 'online' ? (
-                    '✨ Get Online Pass'
                   ) : (
                     '🎟️ Get Offline Pass'
                   )}
                 </button>
               </form>
+            ) : activeTab === 'online' ? (
+              /* TAB: ONLINE PASS — "COMING VERY SOON" FLOW */
+              <div className="booking-form coming-soon-container">
+                {/* Animated lotus icon with sparkle decorations */}
+                <div className="coming-soon-visual">
+                  <div className="coming-soon-icon-wrap">
+                    <span className="coming-soon-sparkle sparkle-1">✦</span>
+                    <span className="coming-soon-sparkle sparkle-2">✧</span>
+                    <span className="coming-soon-sparkle sparkle-3">✦</span>
+                    <div className="coming-soon-icon">🪷</div>
+                    <span className="coming-soon-sparkle sparkle-4">✧</span>
+                    <span className="coming-soon-sparkle sparkle-5">✦</span>
+                    <span className="coming-soon-sparkle sparkle-6">✧</span>
+                  </div>
+                  <h3 className="coming-soon-title">Coming Very Soon!</h3>
+                  <p className="coming-soon-desc">
+                    Online pass purchase is launching very soon. In the meantime, you can buy your pass instantly by messaging us on Instagram!
+                  </p>
+                </div>
+
+                {/* Pass selector (to contextualize the DM message) */}
+                <div className="form-group" style={{ width: '100%' }}>
+                  <label>Select Pass to Inquire About</label>
+                  <div className="pass-selector-grid">
+                    {(passes.length > 0 ? passes : [
+                      { id: 1, code: 'SIGMA' as PassCode, name: 'Sigma Pass', persons: 1, price: 499 },
+                      { id: 2, code: 'COUPLE' as PassCode, name: 'Couple Pass', persons: 2, price: 899 },
+                      { id: 3, code: 'FAMILY' as PassCode, name: 'Family Pass', persons: 4, price: 1699 },
+                    ]).map((pass) => (
+                      <label
+                        key={pass.code}
+                        className={`pass-option-card ${selectedPass === pass.code ? 'selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="dmPassType"
+                          value={pass.code}
+                          checked={selectedPass === pass.code}
+                          onChange={() => setSelectedPass(pass.code)}
+                          className="sr-only"
+                        />
+                        <div className="pass-option-header">
+                          <span className="pass-option-name">{pass.code} PASS</span>
+                          <span className="pass-option-price">₹{pass.price}</span>
+                        </div>
+                        <span className="pass-option-desc">{pass.persons} Person{pass.persons > 1 ? 's' : ''} Entry</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* "DM Now to Buy — @raasrang_gkp" button (Instagram gradient) */}
+                <button
+                  type="button"
+                  className="btn btn-primary booking-submit-btn dm-now-btn"
+                  onClick={handleInstagramDM}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                  </svg>
+                  DM Now to Buy — @raasrang_gkp
+                </button>
+
+                <p className="coming-soon-note">
+                  💬 Your purchase message will be auto-copied. Just paste it in the Instagram chat!
+                </p>
+              </div>
             ) : (
               /* TAB 2: FIND MY TICKET LOOKUP */
               <form onSubmit={handleLookupSubmit} className="booking-form lookup-form" noValidate>
@@ -639,6 +704,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Green Toast Notification: "Message copied to clipboard!" */}
+      {showCopiedToast && (
+        <div className="copied-toast" role="status" aria-live="polite">
+          <span>✅</span> Message copied to clipboard!
+        </div>
+      )}
     </div>
   );
 };

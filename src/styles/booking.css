@@ -384,31 +384,33 @@ body.booking-overlay-active #main-nav {
   transition: all var(--transition-fast);
 }
 
-.ticket-btn-online {
-  background: linear-gradient(135deg, #FF6F00, #E53935);
-  border: none;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.35);
-}
-
-.ticket-btn-online:hover {
-  background: linear-gradient(135deg, #FFA000, #F44336);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(229, 57, 53, 0.5);
-}
-
+/* Offline Pass = Primary (filled gradient, eye-catching) */
 .ticket-btn-offline {
-  background: rgba(240, 180, 41, 0.1);
-  border: 1px solid var(--antique-gold);
-  color: var(--antique-gold);
+  background: linear-gradient(135deg, #D9A441, #F0B429, #D9A441);
+  border: none;
+  color: #120320;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(217, 164, 65, 0.35);
 }
 
 .ticket-btn-offline:hover {
-  background: var(--gold-gradient);
-  color: #120320;
-  border-color: transparent;
+  background: linear-gradient(135deg, #F0B429, #FFD54F, #F0B429);
   transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(240, 180, 41, 0.3);
+  box-shadow: 0 6px 16px rgba(240, 180, 41, 0.5);
+}
+
+/* Online Pass = Secondary (outline, subdued) */
+.ticket-btn-online {
+  background: rgba(240, 180, 41, 0.08);
+  border: 1px solid rgba(217, 164, 65, 0.5);
+  color: var(--antique-gold);
+}
+
+.ticket-btn-online:hover {
+  background: rgba(240, 180, 41, 0.18);
+  border-color: var(--antique-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(240, 180, 41, 0.25);
 }
 
 /* Terms Checkbox */
@@ -1456,3 +1458,179 @@ body.booking-overlay-active #main-nav {
     justify-content: center;
   }
 }
+
+/* ================================================
+   "COMING VERY SOON" — Online Pass Flow
+   ================================================ */
+.coming-soon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) 0 var(--space-lg);
+}
+
+.coming-soon-visual {
+  text-align: center;
+  padding: var(--space-md) var(--space-sm);
+}
+
+.coming-soon-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  margin-bottom: var(--space-md);
+}
+
+.coming-soon-icon {
+  font-size: 3.2rem;
+  line-height: 1;
+  display: inline-block;
+  animation: comingSoonLotusPulse 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(255, 105, 180, 0.4));
+}
+
+@keyframes comingSoonLotusPulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.14) rotate(3deg);
+  }
+}
+
+.coming-soon-sparkle {
+  position: absolute;
+  font-size: 0.9rem;
+  color: var(--antique-gold);
+  animation: sparkleFloat 3s ease-in-out infinite;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(240, 180, 41, 0.8);
+}
+
+.sparkle-1 { top: -6px; left: 10%; animation-delay: 0s; font-size: 1.1rem; }
+.sparkle-2 { top: 6px; right: 8%; animation-delay: 0.6s; font-size: 0.85rem; }
+.sparkle-3 { bottom: 12px; left: 4%; animation-delay: 1.2s; font-size: 0.95rem; }
+.sparkle-4 { top: 18px; left: 82%; animation-delay: 1.8s; font-size: 0.8rem; }
+.sparkle-5 { bottom: -4px; right: 18%; animation-delay: 2.2s; font-size: 1rem; }
+.sparkle-6 { bottom: 10px; left: 24%; animation-delay: 0.9s; font-size: 0.85rem; }
+
+@keyframes sparkleFloat {
+  0%, 100% {
+    transform: translateY(0) scale(0.9);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.3);
+    opacity: 1;
+  }
+}
+
+.coming-soon-title {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: var(--space-xs);
+  text-shadow: 0 2px 14px rgba(217, 164, 65, 0.35);
+  letter-spacing: 1px;
+}
+
+.coming-soon-desc {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.dm-now-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #833AB4 0%, #FD1D1D 50%, #F77737 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 0.98rem;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 20px rgba(131, 58, 180, 0.4), 0 0 25px rgba(253, 29, 29, 0.25);
+  transition: all var(--transition-base);
+  text-transform: none;
+  letter-spacing: 0.3px;
+  width: 100%;
+}
+
+.dm-now-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(131, 58, 180, 0.55), 0 0 35px rgba(253, 29, 29, 0.4);
+}
+
+.coming-soon-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  opacity: 0.8;
+  margin-top: -6px;
+}
+
+/* Green Toast Notification */
+.copied-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 8px 30px rgba(16, 185, 129, 0.45);
+  z-index: 999999;
+  animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+@keyframes toastSlideUp {
+  from {
+    transform: translateX(-50%) translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .coming-soon-title {
+    font-size: 1.4rem;
+  }
+  .coming-soon-desc {
+    font-size: 0.86rem;
+  }
+  .dm-now-btn {
+    font-size: 0.92rem;
+    padding: 12px 20px;
+  }
+  .copied-toast {
+    font-size: 0.82rem;
+    padding: 10px 18px;
+    bottom: 18px;
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+}
+

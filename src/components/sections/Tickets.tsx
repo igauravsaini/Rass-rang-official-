@@ -1,24 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SectionHeading } from '../layout/SectionHeading';
 import { Reveal } from '../ui/Reveal';
 import { Card3D } from '../ui/Card3D';
-import { QuantityStepper } from '../ui/QuantityStepper';
 import { ticketPasses, ticketTerms } from '../../data/tickets';
 import { formatIndianNumber } from '../../lib/format';
 import { PassCode } from '../../types/booking';
 
 export const Tickets: React.FC = () => {
-  const [quantities, setQuantities] = useState<Record<string, number>>({
-    'ticket-sigma': 1,
-    'ticket-couple': 1,
-    'ticket-family': 1,
-  });
-
-  const handleQtyChange = (id: string, val: number) => {
-    setQuantities((prev) => ({ ...prev, [id]: val }));
-  };
-
-  const handleBookNow = (e: React.MouseEvent, id: string, mode: 'online' | 'offline' = 'online') => {
+  const handleBookNow = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     let passCode: PassCode = 'COUPLE';
     if (id === 'ticket-sigma') passCode = 'SIGMA';
@@ -26,7 +15,7 @@ export const Tickets: React.FC = () => {
 
     window.dispatchEvent(
       new CustomEvent('open-booking-modal', {
-        detail: { passType: passCode, passMode: mode },
+        detail: { passType: passCode, passMode: 'offline' },
       })
     );
   };
@@ -77,32 +66,14 @@ export const Tickets: React.FC = () => {
                       <li key={i}>{feature}</li>
                     ))}
                   </ul>
-                  <div className="ticket-qty" style={{ transform: 'translateZ(15px)' }}>
-                    <label htmlFor={`qty-${ticket.id}`}>Quantity:</label>
-                    <QuantityStepper
-                      value={quantities[ticket.id] || 1}
-                      min={1}
-                      max={10}
-                      onChange={(val) => handleQtyChange(ticket.id, val)}
-                      ariaLabel={`${ticket.name} quantity`}
-                    />
-                  </div>
-                  <div className="ticket-actions-group" style={{ transform: 'translateZ(20px)' }}>
-                    <button
-                      type="button"
-                      className="btn btn-primary ticket-btn-online"
-                      onClick={(e) => handleBookNow(e, ticket.id, 'online')}
-                    >
-                      🌐 Get Online Pass
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary ticket-btn-offline"
-                      onClick={(e) => handleBookNow(e, ticket.id, 'offline')}
-                    >
-                      🎟️ Get Offline Pass
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary ticket-book-btn"
+                    onClick={(e) => handleBookNow(e, ticket.id)}
+                    style={{ transform: 'translateZ(20px)' }}
+                  >
+                    BOOK NOW
+                  </button>
                 </Card3D>
               </Reveal>
             );

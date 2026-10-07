@@ -1,6 +1,24 @@
 import { getDb } from '../_lib/db.js';
 
 export async function onRequestGet(context) {
+  const fallbackPasses = [
+    { id: 1, code: 'SIGMA', label: 'Sigma Pass (Single Person)', persons: 1, price: 499 },
+    { id: 2, code: 'COUPLE', label: 'Couple Pass (2 Persons)', persons: 2, price: 899 },
+    { id: 3, code: 'FAMILY', label: 'Family Pass (4 Persons)', persons: 4, price: 1699 },
+  ];
+
+  const fallbackSpots = [
+    {
+      id: 1,
+      name: 'Caha Gorakhpur',
+      address: 'Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017',
+      city: 'Gorakhpur',
+      timings: '10:00 AM – 08:00 PM (Daily)',
+      contact_person: 'Festival Helpdesk',
+      contact_phone: '9876543210',
+    },
+  ];
+
   try {
     const supabase = getDb(context.env);
 
@@ -23,8 +41,8 @@ export async function onRequestGet(context) {
     return new Response(
       JSON.stringify({
         success: true,
-        passes: passes || [],
-        spots: spots || [],
+        passes: passes && passes.length > 0 ? passes : fallbackPasses,
+        spots: spots && spots.length > 0 ? spots : fallbackSpots,
       }),
       {
         status: 200,
@@ -35,15 +53,20 @@ export async function onRequestGet(context) {
       }
     );
   } catch (err) {
-    console.error('[Cloudflare Pages config.js] Error:', err);
+    console.warn('[Cloudflare Pages config.js] Returning default configuration:', err.message || err);
     return new Response(
       JSON.stringify({
-        success: false,
-        error: 'Unable to retrieve event pass configuration.',
+        success: true,
+        passes: fallbackPasses,
+        spots: fallbackSpots,
+        fallback: true,
       }),
       {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=30',
+        },
       }
     );
   }

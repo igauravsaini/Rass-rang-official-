@@ -35,14 +35,14 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const [selectedMode, setSelectedMode] = useState<'online' | 'offline'>('online');
+  const [selectedMode, setSelectedMode] = useState<'online' | 'offline'>('offline');
 
   // Listen for global Book Now triggers (Navbar, Hero, Tickets section, etc.)
   useEffect(() => {
     const handleOpenBooking = (e: Event) => {
       const customEvent = e as CustomEvent<{ passType?: PassCode; passMode?: 'online' | 'offline' }>;
       const pass = customEvent.detail?.passType || 'COUPLE';
-      const mode = customEvent.detail?.passMode || 'online';
+      const mode = customEvent.detail?.passMode || 'offline';
       setSelectedPass(pass);
       setSelectedMode(mode);
       setBookingOpen(true);

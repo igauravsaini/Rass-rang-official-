@@ -402,7 +402,7 @@ export const Hero: React.FC = () => {
               e.preventDefault();
               window.dispatchEvent(
                 new CustomEvent('open-booking-modal', {
-                  detail: { passType: 'COUPLE' },
+                  detail: { passType: 'COUPLE', passMode: 'offline' },
                 })
               );
             }}

@@ -112,7 +112,7 @@ export const Navbar: React.FC = () => {
                   closeMobileMenu();
                   window.dispatchEvent(
                     new CustomEvent('open-booking-modal', {
-                      detail: { passType: 'COUPLE' },
+                      detail: { passType: 'COUPLE', passMode: 'offline' },
                     })
                   );
                 }}

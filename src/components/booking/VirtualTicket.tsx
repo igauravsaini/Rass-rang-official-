@@ -41,24 +41,100 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     setTimeout(() => setCopied(false), 2500);
   };
 
+  /**
+   * Prepares the ticket element for html2canvas capture by temporarily
+   * resolving CSS custom properties and removing problematic gradient-text
+   * clipping that html2canvas cannot render.
+   */
+  const prepareForCapture = (el: HTMLElement): (() => void) => {
+    const cleanups: (() => void)[] = [];
+
+    // 1. Force-resolve all CSS custom properties to computed values on key elements
+    const ticketCard = el;
+
+    // Inline the background so html2canvas doesn't see CSS vars
+    const cs = getComputedStyle(ticketCard);
+    const origBg = ticketCard.style.background;
+    ticketCard.style.background = cs.background || cs.backgroundColor || '#240510';
+    cleanups.push(() => { ticketCard.style.background = origBg; });
+
+    const origColor = ticketCard.style.color;
+    ticketCard.style.color = cs.color || '#fdf6e3';
+    cleanups.push(() => { ticketCard.style.color = origColor; });
+
+    const origBorder = ticketCard.style.borderColor;
+    ticketCard.style.borderColor = cs.borderColor || '#f0b429';
+    cleanups.push(() => { ticketCard.style.borderColor = origBorder; });
+
+    // 2. Fix gradient-text elements (ticket number) — replace with solid gold
+    const gradientTextEls = el.querySelectorAll<HTMLElement>('.vt-ticket-no');
+    gradientTextEls.forEach((ge) => {
+      const origStyles = {
+        background: ge.style.background,
+        backgroundClip: ge.style.backgroundClip,
+        webkitBgClip: ge.style.getPropertyValue('-webkit-background-clip'),
+        webkitFill: ge.style.getPropertyValue('-webkit-text-fill-color'),
+        color: ge.style.color,
+      };
+      ge.style.background = 'none';
+      ge.style.backgroundClip = 'unset';
+      ge.style.setProperty('-webkit-background-clip', 'unset');
+      ge.style.setProperty('-webkit-text-fill-color', 'unset');
+      ge.style.color = '#f0b429';
+      cleanups.push(() => {
+        ge.style.background = origStyles.background;
+        ge.style.backgroundClip = origStyles.backgroundClip;
+        ge.style.setProperty('-webkit-background-clip', origStyles.webkitBgClip);
+        ge.style.setProperty('-webkit-text-fill-color', origStyles.webkitFill);
+        ge.style.color = origStyles.color;
+      });
+    });
+
+    // 3. Resolve all CSS var() references for nested elements
+    const allEls = el.querySelectorAll<HTMLElement>('*');
+    allEls.forEach((child) => {
+      const ccs = getComputedStyle(child);
+      // Only override if the element uses a var-dependent color
+      if (child.style.color === '' && ccs.color) {
+        const origC = child.style.color;
+        child.style.color = ccs.color;
+        cleanups.push(() => { child.style.color = origC; });
+      }
+    });
+
+    return () => cleanups.forEach((fn) => fn());
+  };
+
   const handleDownloadPng = async () => {
     if (!ticketRef.current) return;
     try {
       setDownloadingPng(true);
       const { default: html2canvas } = await import('html2canvas');
+
+      const restore = prepareForCapture(ticketRef.current);
+
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
+        scale: 3,
         backgroundColor: '#0a0412',
         useCORS: true,
+        logging: false,
+        allowTaint: true,
+        removeContainer: true,
+        imageTimeout: 5000,
       });
-      const dataUrl = canvas.toDataURL('image/png');
+
+      restore();
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.download = `RaasRang-Ticket-${ticket.ticketNo}.png`;
+      link.download = `RaasRang-Pass-${ticket.ticketNo}.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (err) {
       console.error('[Download PNG] Failed:', err);
-      alert('Unable to generate ticket image. Please take a screenshot.');
+      alert('Unable to generate ticket image. Please take a screenshot instead.');
     } finally {
       setDownloadingPng(false);
     }
@@ -72,24 +148,39 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         import('html2canvas'),
         import('jspdf')
       ]);
+
+      const restore = prepareForCapture(ticketRef.current);
+
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
+        scale: 3,
         backgroundColor: '#0a0412',
         useCORS: true,
+        logging: false,
+        allowTaint: true,
+        removeContainer: true,
+        imageTimeout: 5000,
       });
-      const imgData = canvas.toDataURL('image/png');
+
+      restore();
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      // Determine the best PDF page size from the canvas aspect ratio
+      const imgAspect = canvas.width / canvas.height;
+      const pdfW = 148; // A5 width in mm
+      const pdfH = pdfW / imgAspect;
+
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: pdfH > pdfW ? 'portrait' : 'landscape',
         unit: 'mm',
-        format: 'a5',
+        format: [pdfW, pdfH + 10], // custom size with 5mm top+bottom padding
       });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 5, pdfWidth, pdfHeight);
-      pdf.save(`RaasRang-Ticket-${ticket.ticketNo}.pdf`);
+
+      pdf.addImage(imgData, 'PNG', 0, 5, pdfW, pdfH);
+      pdf.save(`RaasRang-Pass-${ticket.ticketNo}.pdf`);
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
-      alert('Unable to generate PDF ticket. Please download the PNG instead.');
+      alert('Unable to generate PDF. Please download the PNG instead.');
     } finally {
       setDownloadingPdf(false);
     }
@@ -99,12 +190,12 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
   const shareText = encodeURIComponent(
     `Jai Mata Di! Here is my ${isOnline ? 'Online Pass' : 'Offline Pass'} for Raas~Rang Garba Nights 2026 (Gorakhpur):\n` +
-      `🎫 Ticket No: ${ticket.ticketNo}\n` +
-      `👤 Name: ${ticket.name}\n` +
-      `🎟️ Pass: ${ticket.passName}\n` +
+      `Ticket No: ${ticket.ticketNo}\n` +
+      `Name: ${ticket.name}\n` +
+      `Pass: ${ticket.passName}\n` +
       (isOnline
-        ? `📍 Direct Gate Entry: Mahant Digvijaynath Park\n`
-        : `📍 Collection Spot: ${ticket.spot}\n`) +
+        ? `Direct Gate Entry: Mahant Digvijaynath Park\n`
+        : `Collection Spot: ${ticket.spot}\n`) +
       `Event Date: 17 Oct 2026 at Mahant Digvijaynath Park.\n` +
       `Get your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.pages.dev'}/`
   );
@@ -118,7 +209,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       case 'CANCELLED':
         return '#E53935';
       default:
-        return 'var(--antique-gold)';
+        return '#f0b429';
     }
   };
 

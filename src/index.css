@@ -659,7 +659,6 @@ input, textarea, select {
     color: #0a0412;
     border-color: var(--gold-light);
     box-shadow: 0 4px 25px rgba(255,45,120,0.4), 0 0 40px rgba(255,107,0,0.2);
-    transform: translateY(-2px);
     text-shadow: none;
 }
 
@@ -1091,6 +1090,9 @@ input, textarea, select {
 /* ===== 1. LOGO WITH RADIANT HALO ===== */
 .hero-logo-showcase {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: var(--space-md);
     opacity: 0;
     animation: fadeInUp 1s 0.3s forwards;
@@ -1122,14 +1124,15 @@ input, textarea, select {
 
 .logo-ring-rotate {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    margin: auto;
     width: 165px;
     height: 165px;
     border-radius: 50%;
     border: 1px dashed rgba(244,210,106,0.5);
     animation: rotateHalo 30s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
     pointer-events: none;
 }
 
@@ -3996,5 +3999,89 @@ input, textarea, select {
 
     .section {
         page-break-inside: avoid;
+    }
+}
+
+/* ================================================
+   PERFORMANCE OPTIMIZATIONS
+   ================================================ */
+
+/* Smooth scrolling (native, no JS needed) */
+html {
+    scroll-behavior: smooth;
+}
+
+/* GPU-composited elements: only animate transform & opacity */
+.hero-drapes,
+.hero-bells-cluster,
+.floating-diya,
+.hero-dandiya-frame,
+.hero-logo-showcase,
+.hero-info-frames,
+.hero-title,
+.countdown-item,
+.card-3d,
+.ticket-card,
+.reveal-element,
+.logo-ring-rotate,
+.loader-logo-ring,
+.loader-halo-rays {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Contain layout paint for sections to minimize reflow */
+.section {
+    contain: layout style;
+}
+
+/* Mobile: reduce heavy animations for 60fps */
+@media (max-width: 768px) {
+    /* Simplify complex shadows on mobile */
+    .hero-logo-showcase .hero-logo-img {
+        box-shadow:
+            0 0 0 6px #5a0914,
+            0 0 0 8.5px var(--antique-gold),
+            0 0 20px rgba(217,164,65,0.3);
+    }
+
+    /* Reduce particle count burden via canvas sizing hint */
+    #particle-canvas {
+        image-rendering: optimizeSpeed;
+    }
+
+    /* Disable heavy parallax transforms on mobile (they cause repaints) */
+    .hero-drapes,
+    .hero-bells-cluster,
+    .floating-diya,
+    .hero-dandiya-frame {
+        will-change: auto !important;
+    }
+
+    /* Faster tap response */
+    a, button {
+        touch-action: manipulation;
+    }
+}
+
+/* Respect user preference: reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .logo-ring-rotate,
+    .loader-logo-ring,
+    .loader-halo-rays,
+    .hero-drapes,
+    .floating-diya,
+    #particle-canvas {
+        animation: none !important;
+        display: none;
     }
 }
