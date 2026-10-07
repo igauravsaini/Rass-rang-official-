@@ -1,20 +1,34 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { siteConfig } from '../../data/site';
 import { useCountdown } from '../../hooks/useCountdown';
 
 export const Hero: React.FC = () => {
   const { days, hours, minutes, seconds, isStarted } = useCountdown();
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const mouseAnimRef = useRef<number | null>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
     if (window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMouseOffset({ x, y });
+    const currentTarget = e.currentTarget;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    if (mouseAnimRef.current !== null) return;
+
+    mouseAnimRef.current = window.requestAnimationFrame(() => {
+      const rect = currentTarget.getBoundingClientRect();
+      const x = (clientX - rect.left) / rect.width - 0.5;
+      const y = (clientY - rect.top) / rect.height - 0.5;
+      setMouseOffset({ x, y });
+      mouseAnimRef.current = null;
+    });
   }, []);
 
   const handleMouseLeave = useCallback(() => {
+    if (mouseAnimRef.current !== null) {
+      window.cancelAnimationFrame(mouseAnimRef.current);
+      mouseAnimRef.current = null;
+    }
     setMouseOffset({ x: 0, y: 0 });
   }, []);
 
@@ -224,13 +238,18 @@ export const Hero: React.FC = () => {
         >
           <div className="logo-light-rays"></div>
           <div className="logo-ring-rotate"></div>
-          <img
-            src="/assets/images/logo.jpg"
-            alt="Raas Rang Official Logo"
-            className="hero-logo-img"
-            width={130}
-            height={130}
-          />
+          <picture>
+            <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+            <img
+              src="/assets/images/logo.jpg"
+              alt="Raas Rang Official Logo"
+              className="hero-logo-img"
+              width={130}
+              height={130}
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
         </div>
 
         {/* 2, 3, 4. Top Royal Maroon Plaque & Heading */}

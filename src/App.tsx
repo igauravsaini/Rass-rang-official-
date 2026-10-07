@@ -21,7 +21,9 @@ const AdminScanner = lazy(() =>
   import('./components/admin/AdminScanner').then((m) => ({ default: m.AdminScanner }))
 );
 
-import { BookingModal } from './components/booking/BookingModal';
+const BookingModal = lazy(() =>
+  import('./components/booking/BookingModal').then((m) => ({ default: m.BookingModal }))
+);
 import { PassCode } from './types/booking';
 
 export const App: React.FC = () => {
@@ -111,12 +113,16 @@ export const App: React.FC = () => {
       <Footer />
 
       {/* Global Booking Overlay Modal with Background Blur */}
-      <BookingModal
-        isOpen={bookingOpen}
-        onClose={() => setBookingOpen(false)}
-        defaultPass={selectedPass}
-        defaultMode={selectedMode}
-      />
+      {bookingOpen && (
+        <Suspense fallback={null}>
+          <BookingModal
+            isOpen={bookingOpen}
+            onClose={() => setBookingOpen(false)}
+            defaultPass={selectedPass}
+            defaultMode={selectedMode}
+          />
+        </Suspense>
+      )}
     </>
   );
 };

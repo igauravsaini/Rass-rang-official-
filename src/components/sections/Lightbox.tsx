@@ -72,13 +72,16 @@ export const Lightbox: React.FC<LightboxProps> = ({ isOpen, item, onClose, onPre
         &#10095;
       </button>
 
-      <img
-        src={item.src}
-        alt={item.alt}
-        className="lightbox-img"
-        id="lightbox-img"
-        decoding="async"
-      />
+      <picture>
+        <source srcSet={item.src.replace('.jpg', '.webp')} type="image/webp" />
+        <img
+          src={item.src}
+          alt={item.alt}
+          className="lightbox-img"
+          id="lightbox-img"
+          decoding="async"
+        />
+      </picture>
 
       <div className="lightbox-caption" id="lightbox-caption">
         {item.label}

@@ -110,15 +110,18 @@ export const Preloader: React.FC = () => {
           <div className="loader-halo-glow"></div>
         </div>
         <div className="loader-logo-wrap">
-          <img
-            src="/assets/images/logo.jpg"
-            alt="Raas Rang Official Emblem"
-            className="loader-logo"
-            width={120}
-            height={120}
-            fetchPriority="high"
-            decoding="async"
-          />
+          <picture>
+            <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+            <img
+              src="/assets/images/logo.jpg"
+              alt="Raas Rang Official Emblem"
+              className="loader-logo"
+              width={120}
+              height={120}
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
           <div className="loader-logo-ring"></div>
         </div>
         <div className="loader-motto-wrap">

@@ -65,13 +65,17 @@ export const Navbar: React.FC = () => {
             onClick={(e) => handleNavClick(e, '#home')}
           >
             <div className="nav-logo-wrap">
-              <img
-                src="/assets/images/logo.jpg"
-                alt="Raas Rang Logo"
-                className="nav-logo-img"
-                width={45}
-                height={45}
-              />
+              <picture>
+                <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+                <img
+                  src="/assets/images/logo.jpg"
+                  alt="Raas Rang Logo"
+                  className="nav-logo-img"
+                  width={45}
+                  height={45}
+                  decoding="async"
+                />
+              </picture>
             </div>
             <span className="nav-brand-text">RAAS~RANG</span>
           </a>

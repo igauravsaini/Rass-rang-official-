@@ -3,6 +3,7 @@ import { PassItem, CollectionSpot, VirtualTicketData, PassCode } from '../../typ
 import { VirtualTicket } from './VirtualTicket';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { safeParseJson } from '../../lib/api';
+import '../../styles/booking.css';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -76,9 +77,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [isOpen, defaultMode]);
 
-  // Render Turnstile when available
+  // Dynamically load Turnstile script on demand and render challenge
   useEffect(() => {
-    if (!turnstileSiteKey || !turnstileRef.current || activeTab === 'lookup') return;
+    if (!turnstileSiteKey || !turnstileRef.current || activeTab === 'lookup' || !isOpen) return;
+
+    if (!(window as any).turnstile && !document.querySelector('script[src*="turnstile/v0/api.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
     const timer = setTimeout(() => {
       if ((window as any).turnstile && turnstileRef.current) {
         try {
@@ -90,7 +100,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           // ignore already rendered
         }
       }
-    }, 250);
+    }, 300);
     return () => clearTimeout(timer);
   }, [turnstileSiteKey, activeTab, isOpen]);
 
@@ -552,7 +562,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 )}
 
-                {configError && activeTab === 'online' && (
+                {configError && (
                   <div className="booking-alert warning" role="alert">
                     ℹ️ {configError}
                   </div>

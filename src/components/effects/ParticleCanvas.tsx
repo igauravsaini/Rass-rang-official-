@@ -70,8 +70,11 @@ class Particle {
     ctx.save();
     ctx.globalAlpha = this.opacity;
     ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
-    ctx.shadowBlur = this.size * 4;
-    ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.5)`;
+    // Only apply GPU-heavy shadowBlur on larger desktop viewports
+    if (this.canvasWidth >= 768) {
+      ctx.shadowBlur = this.size * 3;
+      ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.4)`;
+    }
 
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
@@ -96,11 +99,15 @@ export const ParticleCanvas: React.FC = () => {
 
     let animFrameId: number;
     let particles: Particle[] = [];
+    let resizeTimer: NodeJS.Timeout | null = null;
 
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      const count = Math.min(Math.floor((canvas.width * canvas.height) / 15000), 80);
+      const isMobile = canvas.width < 768;
+      const count = isMobile
+        ? Math.min(Math.floor((canvas.width * canvas.height) / 25000), 35)
+        : Math.min(Math.floor((canvas.width * canvas.height) / 15000), 75);
       particles = [];
       for (let i = 0; i < count; i++) {
         particles.push(new Particle(canvas.width, canvas.height));
@@ -108,7 +115,11 @@ export const ParticleCanvas: React.FC = () => {
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    const handleResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 150);
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -132,7 +143,8 @@ export const ParticleCanvas: React.FC = () => {
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimer) clearTimeout(resizeTimer);
       document.removeEventListener('visibilitychange', handleVisibility);
       cancelAnimationFrame(animFrameId);
     };

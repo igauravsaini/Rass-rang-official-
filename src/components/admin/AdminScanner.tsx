@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { safeParseJson } from '../../lib/api';
+import '../../styles/booking.css';
 
 export const AdminScanner: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>(() => sessionStorage.getItem('rrg_admin_key') || '');

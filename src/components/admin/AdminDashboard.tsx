@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { safeParseJson } from '../../lib/api';
+import '../../styles/booking.css';
 
 export const AdminDashboard: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>(() => sessionStorage.getItem('rrg_admin_key') || '');

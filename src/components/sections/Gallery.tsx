@@ -61,14 +61,17 @@ export const Gallery: React.FC = () => {
               data-category={item.category}
               onClick={() => handleOpenLightbox(index)}
             >
-              <img
-                src={item.src}
-                alt={item.alt}
-                loading="lazy"
-                decoding="async"
-                width={600}
-                height={400}
-              />
+              <picture>
+                <source srcSet={item.src.replace('.jpg', '.webp')} type="image/webp" />
+                <img
+                  src={item.src}
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  width={600}
+                  height={400}
+                />
+              </picture>
               <div className="gallery-overlay">
                 <span className="gallery-label">{item.label}</span>
                 <button

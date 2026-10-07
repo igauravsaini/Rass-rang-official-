@@ -41,68 +41,6 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     setTimeout(() => setCopied(false), 2500);
   };
 
-  /**
-   * Prepares the ticket element for html2canvas capture by temporarily
-   * resolving CSS custom properties and removing problematic gradient-text
-   * clipping that html2canvas cannot render.
-   */
-  const prepareForCapture = (el: HTMLElement): (() => void) => {
-    const cleanups: (() => void)[] = [];
-
-    // 1. Force-resolve all CSS custom properties to computed values on key elements
-    const ticketCard = el;
-
-    // Inline the background so html2canvas doesn't see CSS vars
-    const cs = getComputedStyle(ticketCard);
-    const origBg = ticketCard.style.background;
-    ticketCard.style.background = cs.background || cs.backgroundColor || '#240510';
-    cleanups.push(() => { ticketCard.style.background = origBg; });
-
-    const origColor = ticketCard.style.color;
-    ticketCard.style.color = cs.color || '#fdf6e3';
-    cleanups.push(() => { ticketCard.style.color = origColor; });
-
-    const origBorder = ticketCard.style.borderColor;
-    ticketCard.style.borderColor = cs.borderColor || '#f0b429';
-    cleanups.push(() => { ticketCard.style.borderColor = origBorder; });
-
-    // 2. Fix gradient-text elements (ticket number) — replace with solid gold
-    const gradientTextEls = el.querySelectorAll<HTMLElement>('.vt-ticket-no');
-    gradientTextEls.forEach((ge) => {
-      const origStyles = {
-        background: ge.style.background,
-        backgroundClip: ge.style.backgroundClip,
-        webkitBgClip: ge.style.getPropertyValue('-webkit-background-clip'),
-        webkitFill: ge.style.getPropertyValue('-webkit-text-fill-color'),
-        color: ge.style.color,
-      };
-      ge.style.background = 'none';
-      ge.style.backgroundClip = 'unset';
-      ge.style.setProperty('-webkit-background-clip', 'unset');
-      ge.style.setProperty('-webkit-text-fill-color', 'unset');
-      ge.style.color = '#f0b429';
-      cleanups.push(() => {
-        ge.style.background = origStyles.background;
-        ge.style.backgroundClip = origStyles.backgroundClip;
-        ge.style.setProperty('-webkit-background-clip', origStyles.webkitBgClip);
-        ge.style.setProperty('-webkit-text-fill-color', origStyles.webkitFill);
-        ge.style.color = origStyles.color;
-      });
-    });
-
-    // 3. Resolve all CSS var() references for nested elements
-    const allEls = el.querySelectorAll<HTMLElement>('*');
-    allEls.forEach((child) => {
-      const ccs = getComputedStyle(child);
-      // Only override if the element uses a var-dependent color
-      if (child.style.color === '' && ccs.color) {
-        const origC = child.style.color;
-        child.style.color = ccs.color;
-        cleanups.push(() => { child.style.color = origC; });
-      }
-    });
-
-    return () => cleanups.forEach((fn) => fn());
   const waitForTicketAssets = async () => {
     // Wait for web fonts
     if (document.fonts?.ready) {
@@ -469,33 +407,10 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
     try {
       setDownloadingPng(true);
-      const { default: html2canvas } = await import('html2canvas');
-
-      const restore = prepareForCapture(ticketRef.current);
-
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 3,
-        backgroundColor: '#0a0412',
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        removeContainer: true,
-        imageTimeout: 5000,
-      });
-
-      restore();
-
-      const dataUrl = canvas.toDataURL('image/png', 1.0);
-      const link = document.createElement('a');
-      link.download = `RaasRang-Pass-${ticket.ticketNo}.png`;
-      link.href = dataUrl;
 
       const canvas = await captureTicket();
-
       const dataUrl = canvas.toDataURL('image/png', 1.0);
-
       const link = document.createElement('a');
-
       link.download = `RaasRang-Ticket-${ticket.ticketNo}.png`;
       link.href = dataUrl;
 
@@ -504,11 +419,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       document.body.removeChild(link);
     } catch (err) {
       console.error('[Download PNG] Failed:', err);
-      alert('Unable to generate ticket image. Please take a screenshot instead.');
-
-      alert(
-        'Unable to generate the ticket image. Please try again.'
-      );
+      alert('Unable to generate the ticket image. Please try again.');
     } finally {
       setDownloadingPng(false);
     }
@@ -519,46 +430,19 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
     try {
       setDownloadingPdf(true);
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf')
+
+      const [{ default: jsPDF }, canvas] = await Promise.all([
+        import('jspdf').then((module) => ({
+          default: module.jsPDF,
+        })),
+        captureTicket(),
       ]);
-
-      const restore = prepareForCapture(ticketRef.current);
-
-      const canvas = await html2canvas(ticketRef.current, {
-        scale: 3,
-        backgroundColor: '#0a0412',
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        removeContainer: true,
-        imageTimeout: 5000,
-      });
-
-      restore();
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-
-      // Determine the best PDF page size from the canvas aspect ratio
-      const imgAspect = canvas.width / canvas.height;
-      const pdfW = 148; // A5 width in mm
-      const pdfH = pdfW / imgAspect;
-
-      const [{ default: jsPDF }, canvas] =
-        await Promise.all([
-          import('jspdf').then((module) => ({
-            default: module.jsPDF,
-          })),
-          captureTicket(),
-        ]);
 
       const imgData = canvas.toDataURL('image/png', 1.0);
 
       // A5 portrait
       const pageWidth = 148;
       const pageHeight = 210;
-
       const margin = 5;
 
       const availableWidth = pageWidth - margin * 2;
@@ -578,16 +462,8 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
       const y = (pageHeight - imageHeight) / 2;
 
       const pdf = new jsPDF({
-        orientation: pdfH > pdfW ? 'portrait' : 'landscape',
+        orientation: 'portrait',
         unit: 'mm',
-        format: [pdfW, pdfH + 10], // custom size with 5mm top+bottom padding
-      });
-
-      pdf.addImage(imgData, 'PNG', 0, 5, pdfW, pdfH);
-      pdf.save(`RaasRang-Pass-${ticket.ticketNo}.pdf`);
-    } catch (err) {
-      console.error('[Download PDF] Failed:', err);
-      alert('Unable to generate PDF. Please download the PNG instead.');
         format: 'a5',
         compress: true,
       });
@@ -606,15 +482,10 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         'FAST'
       );
 
-      pdf.save(
-        `RaasRang-Ticket-${ticket.ticketNo}.pdf`
-      );
+      pdf.save(`RaasRang-Ticket-${ticket.ticketNo}.pdf`);
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
-
-      alert(
-        'Unable to generate the ticket PDF. Please try again.'
-      );
+      alert('Unable to generate the ticket PDF. Please try again.');
     } finally {
       setDownloadingPdf(false);
     }
@@ -654,7 +525,17 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         {/* Ticket Header */}
         <div className="vt-header">
           <div className="vt-logo-row">
-            <img src="/assets/images/logo.jpg" alt="Raas Rang Logo" className="vt-logo-img" />
+            <picture>
+              <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+              <img
+                src="/assets/images/logo.jpg"
+                alt="Raas Rang Logo"
+                className="vt-logo-img"
+                width={52}
+                height={52}
+                decoding="async"
+              />
+            </picture>
             <div>
               <h2 className="vt-brand">RAAS~RANG GKP</h2>
               <p className="vt-subbrand">

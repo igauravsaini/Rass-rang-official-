@@ -710,8 +710,15 @@ input, textarea, select {
 .hero-bg-image {
     position: absolute;
     inset: 0;
-    background: url('/assets/images/hero-bg.jpg') center/cover no-repeat;
+    background: url('/assets/images/hero-bg.webp') center/cover no-repeat;
     animation: hero-parallax 30s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@media (max-width: 768px) {
+    .hero-bg-image {
+        background-image: url('/assets/images/hero-bg-768.webp');
+    }
 }
 
 @keyframes hero-parallax {
@@ -1059,6 +1066,7 @@ input, textarea, select {
     border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
     animation: flameFlicker 0.25s ease-in-out infinite alternate;
     box-shadow: 0 0 15px #FF9900, 0 0 30px rgba(255,153,0,0.6);
+    will-change: transform;
 }
 
 @keyframes flameFlicker {
@@ -1747,6 +1755,21 @@ input, textarea, select {
     position: relative;
     padding: var(--space-5xl) 0;
     z-index: 2;
+}
+
+/* Rendering performance containment for below-the-fold sections */
+.about-section,
+.events-section,
+.stats-section,
+.schedule-section,
+.tickets-section,
+.sponsors-section,
+.gallery-section,
+.venue-section,
+.contact-section,
+.site-footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 750px;
 }
 
 .section-container {

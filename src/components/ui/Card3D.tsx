@@ -18,6 +18,7 @@ export const Card3D: React.FC<Card3DProps> = ({
   ...props
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const rAFRef = useRef<number | null>(null);
   const [transform, setTransform] = useState('');
   const [glowStyle, setGlowStyle] = useState<React.CSSProperties>({ opacity: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -29,31 +30,39 @@ export const Card3D: React.FC<Card3DProps> = ({
         return;
       }
 
-      const card = cardRef.current;
-      if (!card) return;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
 
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      if (rAFRef.current !== null) return;
 
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      rAFRef.current = window.requestAnimationFrame(() => {
+        const card = cardRef.current;
+        if (card) {
+          const rect = card.getBoundingClientRect();
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
 
-      const rotateX = ((centerY - y) / centerY) * maxTilt;
-      const rotateY = ((x - centerX) / centerX) * maxTilt;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
 
-      setTransform(
-        `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-6px) translateZ(12px) scale3d(${scale}, ${scale}, ${scale})`
-      );
+          const rotateX = ((centerY - y) / centerY) * maxTilt;
+          const rotateY = ((x - centerX) / centerX) * maxTilt;
 
-      if (glow) {
-        const glowX = (x / rect.width) * 100;
-        const glowY = (y / rect.height) * 100;
-        setGlowStyle({
-          opacity: 1,
-          background: `radial-gradient(circle at ${glowX.toFixed(1)}% ${glowY.toFixed(1)}%, rgba(240, 180, 41, 0.22) 0%, rgba(255, 45, 120, 0.12) 40%, transparent 70%)`,
-        });
-      }
+          setTransform(
+            `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-6px) translateZ(12px) scale3d(${scale}, ${scale}, ${scale})`
+          );
+
+          if (glow) {
+            const glowX = (x / rect.width) * 100;
+            const glowY = (y / rect.height) * 100;
+            setGlowStyle({
+              opacity: 1,
+              background: `radial-gradient(circle at ${glowX.toFixed(1)}% ${glowY.toFixed(1)}%, rgba(240, 180, 41, 0.22) 0%, rgba(255, 45, 120, 0.12) 40%, transparent 70%)`,
+            });
+          }
+        }
+        rAFRef.current = null;
+      });
     },
     [maxTilt, scale, glow]
   );
@@ -63,6 +72,10 @@ export const Card3D: React.FC<Card3DProps> = ({
   };
 
   const handleMouseLeave = () => {
+    if (rAFRef.current !== null) {
+      window.cancelAnimationFrame(rAFRef.current);
+      rAFRef.current = null;
+    }
     setIsHovered(false);
     setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) translateZ(0px) scale3d(1, 1, 1)');
     setGlowStyle({ opacity: 0 });

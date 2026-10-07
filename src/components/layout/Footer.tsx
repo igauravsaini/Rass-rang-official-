@@ -22,15 +22,18 @@ export const Footer: React.FC = () => {
       <div className="footer-container">
         <div className="footer-main">
           <div className="footer-brand">
-            <img
-              src="/assets/images/logo.jpg"
-              alt="Raas Rang Logo"
-              className="footer-logo-img"
-              width={60}
-              height={60}
-              loading="lazy"
-              decoding="async"
-            />
+            <picture>
+              <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+              <img
+                src="/assets/images/logo.jpg"
+                alt="Raas Rang Logo"
+                className="footer-logo-img"
+                width={60}
+                height={60}
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
             <h3 className="footer-brand-name gold-shimmer">{siteConfig.name}</h3>
             <p className="footer-tagline">Dance &bull; Devotion &bull; Togetherness</p>
             <p className="footer-desc">{siteConfig.description}</p>

@@ -5,19 +5,27 @@ export function useScrollSpy(sectionIds: string[], offset: number = SCROLLSPY_OF
   const [activeId, setActiveId] = useState<string>(sectionIds[0] || 'home');
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.pageYOffset + offset;
+    let ticking = false;
 
-      for (const id of sectionIds) {
-        const el = document.getElementById(id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollY >= top && scrollY < top + height) {
-            setActiveId(id);
-            break;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.pageYOffset + offset;
+
+          for (const id of sectionIds) {
+            const el = document.getElementById(id);
+            if (el) {
+              const top = el.offsetTop;
+              const height = el.offsetHeight;
+              if (scrollY >= top && scrollY < top + height) {
+                setActiveId((prev) => (prev !== id ? id : prev));
+                break;
+              }
+            }
           }
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
