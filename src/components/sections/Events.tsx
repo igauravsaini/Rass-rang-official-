@@ -25,11 +25,24 @@ export const Events: React.FC = () => {
             >
               <Card3D className="event-card" maxTilt={8} scale={1.02}>
                 <div className="event-card-glow"></div>
-                <div className="event-card-icon" style={{ transform: 'translateZ(25px)' }}>
-                  {event.icon}
+                <div className="event-card-media">
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="event-card-bg-img"
+                    width={800}
+                    height={950}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="event-card-content">
+                    <h3 className="event-card-title">{event.title}</h3>
+                    <div className="event-card-divider" aria-hidden="true">
+                      <span>❖</span>
+                    </div>
+                    <p className="event-card-desc">{event.description}</p>
+                  </div>
                 </div>
-                <h3 style={{ transform: 'translateZ(15px)' }}>{event.title}</h3>
-                <p style={{ transform: 'translateZ(10px)' }}>{event.description}</p>
               </Card3D>
             </Reveal>
           ))}

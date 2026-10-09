@@ -9,8 +9,7 @@ import { Events } from './components/sections/Events';
 import { Stats } from './components/sections/Stats';
 import { Schedule } from './components/sections/Schedule';
 import { Tickets } from './components/sections/Tickets';
-import { Sponsors } from './components/sections/Sponsors';
-import { Gallery } from './components/sections/Gallery';
+
 import { Venue } from './components/sections/Venue';
 import { Contact } from './components/sections/Contact';
 
@@ -103,8 +102,7 @@ export const App: React.FC = () => {
         <Stats />
         <Schedule />
         <Tickets />
-        <Sponsors />
-        <Gallery />
+
         <Venue />
         <Contact />
       </main>

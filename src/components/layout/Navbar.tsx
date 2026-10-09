@@ -8,7 +8,7 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isScrolled = useScrolled(60);
 
-  const sectionIds = ['home', 'about', 'events', 'schedule', 'tickets', 'sponsors', 'gallery', 'contact'];
+  const sectionIds = ['home', 'about', 'events', 'schedule', 'tickets', 'contact'];
   const activeSection = useScrollSpy(sectionIds);
 
   // Lock scroll when mobile menu is open

@@ -9,7 +9,5 @@ export const navItems: NavItem[] = [
   { label: 'Events', href: '#events' },
   { label: 'Schedule', href: '#schedule' },
   { label: 'Tickets', href: '#tickets' },
-  { label: 'Sponsors', href: '#sponsors' },
-  { label: 'Gallery', href: '#gallery' },
   { label: 'Contact', href: '#contact' },
 ];

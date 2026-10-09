@@ -35,8 +35,7 @@ export const siteConfig: SiteConfig = {
   mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.567!2d83.3732!3d26.7606!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3991446a0bfbbc35%3A0x724d30daa01b1be8!2sGorakhpur%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1695000000000!5m2!1sen!2sin',
   mapDirectionsUrl: 'https://maps.google.com/?q=Mahant+Digvijaynath+Park+Gorakhpur',
   phones: [
-    { display: '+91 83180 35993', tel: '+918318035993' },
-    { display: '+91 89579 82489', tel: '+918957982489' },
+    { display: '+91 96510 85051', tel: '+919651085051' },
   ],
   email: 'raasrang.gkp@gmail.com',
   instagram: {

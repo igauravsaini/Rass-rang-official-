@@ -54,19 +54,19 @@ export const Contact: React.FC = () => {
           <Reveal direction="up" className="contact-info-card glass-card">
             <h3>Reach Out</h3>
             <div className="contact-details">
-              <a href={`tel:${siteConfig.phones[0].tel}`} className="contact-item" id="contact-phone-1">
-                <span className="contact-icon" aria-hidden="true">
-                  📞
-                </span>
-                <span>{siteConfig.phones[0].display}</span>
-              </a>
-
-              <a href={`tel:${siteConfig.phones[1].tel}`} className="contact-item" id="contact-phone-2">
-                <span className="contact-icon" aria-hidden="true">
-                  📱
-                </span>
-                <span>{siteConfig.phones[1].display}</span>
-              </a>
+              {siteConfig.phones.map((phone, idx) => (
+                <a
+                  key={phone.tel}
+                  href={`tel:${phone.tel}`}
+                  className="contact-item"
+                  id={`contact-phone-${idx + 1}`}
+                >
+                  <span className="contact-icon" aria-hidden="true">
+                    {idx === 0 ? '📞' : idx === 1 ? '📱' : '📲'}
+                  </span>
+                  <span>{phone.display}</span>
+                </a>
+              ))}
 
               <a href={`mailto:${siteConfig.email}`} className="contact-item" id="contact-email">
                 <span className="contact-icon" aria-hidden="true">

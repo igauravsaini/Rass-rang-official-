@@ -429,14 +429,6 @@ export const Hero: React.FC = () => {
             Book Tickets
           </a>
           <a
-            href="#sponsors"
-            className="btn btn-secondary"
-            id="hero-become-sponsor"
-            onClick={(e) => handleSmoothScroll(e, '#sponsors')}
-          >
-            Become Sponsor
-          </a>
-          <a
             href="#events"
             className="btn btn-outline"
             id="hero-explore-event"
