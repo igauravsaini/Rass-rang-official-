@@ -740,9 +740,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="booking-form bms-online-container">
                 {/* Header visual */}
                 <div className="bms-online-hero">
-                  <div className="bms-online-icon-wrap">
-                    <IconGlobe size={48} className="bms-hero-icon" />
+                  {/* Centered 3rd image event banner with glow */}
+                  <div className="bms-online-banner-wrap">
+                    <img
+                      src="/assets/images/online-ticket-banner.jpg"
+                      alt="Raas~Rang Garba Nights 2026 - DJ Saifu & DJ Daisy"
+                      className="bms-online-banner-img"
+                      width={880}
+                      height={440}
+                      loading="eager"
+                      decoding="async"
+                    />
                   </div>
+
+                  {/* Centered BookMyShow logo badge with glow */}
+                  <div className="bms-online-logo-wrap">
+                    <div className="bms-online-logo-badge">
+                      <img
+                        src="/assets/images/bookmyshow-logo.png"
+                        alt="BookMyShow"
+                        className="bms-online-logo-img"
+                        width={180}
+                        height={40}
+                      />
+                    </div>
+                  </div>
+
                   <h3 className="bms-online-title">Book on BookMyShow</h3>
                   <p className="bms-online-desc">
                     Book your official Sigma Pass directly on BookMyShow — India's most trusted ticketing platform. You'll be redirected securely to complete your purchase.

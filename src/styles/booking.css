@@ -1635,7 +1635,82 @@ body.booking-overlay-active #main-nav {
 
 .bms-online-hero {
   text-align: center;
-  padding: var(--space-md) var(--space-sm);
+  padding: 0 var(--space-xs) var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Centered Event Banner with Warm Festive Glow */
+.bms-online-banner-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto var(--space-md);
+}
+
+.bms-online-banner-img {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1.5px solid rgba(240, 180, 41, 0.45);
+  box-shadow: 
+    0 0 24px rgba(240, 180, 41, 0.35),
+    0 0 48px rgba(255, 45, 120, 0.18),
+    0 10px 28px rgba(0, 0, 0, 0.7);
+  display: block;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bms-online-banner-img:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 
+    0 0 35px rgba(240, 180, 41, 0.52),
+    0 0 65px rgba(255, 45, 120, 0.3),
+    0 14px 34px rgba(0, 0, 0, 0.8);
+}
+
+/* Centered BookMyShow Logo Badge with Glow */
+.bms-online-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.bms-online-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 7px 22px;
+  border-radius: 999px;
+  box-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.4),
+    0 0 38px rgba(240, 180, 41, 0.32),
+    0 4px 15px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bms-online-logo-badge:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 
+    0 0 28px rgba(255, 255, 255, 0.6),
+    0 0 50px rgba(240, 180, 41, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.bms-online-logo-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .bms-online-icon-wrap {

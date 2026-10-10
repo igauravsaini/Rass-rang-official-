@@ -20,10 +20,10 @@ const StatCounterItem: React.FC<StatItemProps> = ({
   suffix,
   label,
   desc,
-  delay,
-  isTriggered,
+  delay = '0s',
+  isTriggered = true,
 }) => {
-  const count = useCountUp({ target, duration: 2000, trigger: isTriggered });
+  const count = useCountUp({ target, duration: 0, trigger: isTriggered });
 
   return (
     <Reveal direction="up" delay={delay} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -49,7 +49,7 @@ const StatCounterItem: React.FC<StatItemProps> = ({
 };
 
 export const Stats: React.FC = () => {
-  const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [sectionRef, isInView] = useInView<HTMLDivElement>({ threshold: 0.05 });
 
   return (
     <section id="stats" className="section stats-section">
@@ -63,7 +63,7 @@ export const Stats: React.FC = () => {
             suffix="+"
             label="Expected Footfall"
             desc="Verified ticket buyers on ground"
-            delay="0.1s"
+            delay="0s"
             isTriggered={isInView}
           />
           <StatCounterItem
@@ -71,7 +71,7 @@ export const Stats: React.FC = () => {
             suffix="M+"
             label="Regional Digital Reach"
             desc="Purvanchal digital ad campaign"
-            delay="0.2s"
+            delay="0s"
             isTriggered={isInView}
           />
           <StatCounterItem
@@ -79,11 +79,11 @@ export const Stats: React.FC = () => {
             suffix="%"
             label="Youth & Professionals"
             desc="College students & young couples"
-            delay="0.3s"
+            delay="0s"
             isTriggered={isInView}
           />
 
-          <Reveal direction="up" delay="0.4s" style={{ display: 'flex', flexDirection: 'column' }}>
+          <Reveal direction="up" delay="0s" style={{ display: 'flex', flexDirection: 'column' }}>
             <Card3D className="stat-card" maxTilt={7} scale={1.02}>
               <div className="stat-value-text" style={{ transform: 'translateZ(20px)' }}>
                 ₹499–₹1,699

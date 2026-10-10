@@ -6,14 +6,15 @@ export interface UseCountUpOptions {
   trigger?: boolean;
 }
 
-export function useCountUp({ target, duration = 2000, trigger = false }: UseCountUpOptions): number {
-  const [count, setCount] = useState(0);
+export function useCountUp({ target, duration = 0, trigger = true }: UseCountUpOptions): number {
+  // Initialize with target so numbers are immediately visible in 0ms (microseconds) on initial render
+  const [count, setCount] = useState<number>(target);
   const animatedRef = useRef(false);
 
   useEffect(() => {
     if (!trigger || animatedRef.current) return;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (duration <= 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setCount(target);
       animatedRef.current = true;
       return;
@@ -26,7 +27,6 @@ export function useCountUp({ target, duration = 2000, trigger = false }: UseCoun
     function step(currentTime: number) {
       const elapsed = currentTime - start;
       const progress = Math.min(elapsed / duration, 1);
-      // Replicate original cubic ease-out
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = Math.floor(eased * target);
       setCount(current);
