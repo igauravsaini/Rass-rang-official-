@@ -1621,6 +1621,18 @@ body.booking-overlay-active #main-nav {
   padding: var(--space-md) 0 var(--space-lg);
 }
 
+.bms-pass-selector-grid {
+  grid-template-columns: minmax(0, 320px);
+  justify-content: center;
+  width: 100%;
+}
+
+.bms-pass-card {
+  cursor: default;
+  min-height: 96px;
+  align-items: center;
+}
+
 .bms-online-hero {
   text-align: center;
   padding: var(--space-md) var(--space-sm);
@@ -1882,4 +1894,3 @@ body.booking-overlay-active #main-nav {
     padding: var(--space-xl) var(--space-md);
   }
 }
-

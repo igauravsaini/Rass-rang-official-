@@ -62,6 +62,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const bmsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const BMS_BASE_URL = 'https://in.bookmyshow.com/activities/raasrang-garba-nights-2026/ET00521642';
+  const sigmaPass = passes.find((pass) => pass.code === 'SIGMA') ?? {
+    id: 1,
+    code: 'SIGMA' as PassCode,
+    label: 'Sigma Pass',
+    persons: 1,
+    price: 499,
+  };
 
   const getBmsUrl = useCallback((passCode: PassCode) => {
     return `${BMS_BASE_URL}?utm_source=site&utm_medium=passcard&utm_campaign=raasrang2026&pass=${passCode.toLowerCase()}`;
@@ -79,7 +86,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
       if (tick >= 30) {
         if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
-        window.open(getBmsUrl(selectedPass), '_blank', 'noopener,noreferrer');
+        window.open(getBmsUrl('SIGMA'), '_blank', 'noopener,noreferrer');
         setTimeout(() => setShowBmsModal(false), 400);
       }
     }, 100); // 30 ticks × 100ms = 3 seconds
@@ -738,38 +745,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                   <h3 className="bms-online-title">Book on BookMyShow</h3>
                   <p className="bms-online-desc">
-                    Purchase your official online pass directly on BookMyShow — India's most trusted ticketing platform. Select your pass below and you'll be redirected securely.
+                    Book your official Sigma Pass directly on BookMyShow — India's most trusted ticketing platform. You'll be redirected securely to complete your purchase.
                   </p>
                 </div>
 
                 {/* Pass selector */}
                 <div className="form-group" style={{ width: '100%' }}>
-                  <label>Select Your Pass</label>
-                  <div className="pass-selector-grid">
-                    {(passes.length > 0 ? passes : [
-                      { id: 1, code: 'SIGMA' as PassCode, label: 'Sigma Pass', persons: 1, price: 499 },
-                      { id: 2, code: 'COUPLE' as PassCode, label: 'Couple Pass', persons: 2, price: 899 },
-                      { id: 3, code: 'FAMILY' as PassCode, label: 'Family Pass', persons: 4, price: 1699 },
-                    ]).map((pass) => (
-                      <label
-                        key={pass.code}
-                        className={`pass-option-card ${selectedPass === pass.code ? 'selected' : ''}`}
-                      >
-                        <input
-                          type="radio"
-                          name="bmsPassType"
-                          value={pass.code}
-                          checked={selectedPass === pass.code}
-                          onChange={() => setSelectedPass(pass.code)}
-                          className="sr-only"
-                        />
-                        <div className="pass-option-header">
-                          <span className="pass-option-name">{pass.code} PASS</span>
-                          <span className="pass-option-price">₹{pass.price}</span>
-                        </div>
-                        <span className="pass-option-desc">{pass.persons} Person{pass.persons > 1 ? 's' : ''} Entry</span>
-                      </label>
-                    ))}
+                  <label>Available Online</label>
+                  <div className="pass-selector-grid bms-pass-selector-grid">
+                    <div className="pass-option-card selected bms-pass-card">
+                      <div className="pass-option-header">
+                        <span className="pass-option-name">SIGMA PASS</span>
+                        <span className="pass-option-price">₹{sigmaPass.price}</span>
+                      </div>
+                      <span className="pass-option-desc">{sigmaPass.persons} Person Entry</span>
+                    </div>
                   </div>
                 </div>
 
@@ -780,7 +770,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   onClick={handleBookOnBms}
                 >
                   <IconExternalLink size={18} />
-                  Book on BookMyShow — {selectedPass} Pass
+                  Book on BookMyShow — Sigma Pass
                 </button>
 
                 <p className="bms-online-note">
@@ -810,12 +800,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       </div>
                       <h4 className="bms-redirect-title">Redirecting to BookMyShow</h4>
                       <div className="bms-redirect-summary">
-                        <span className="bms-summary-pill">{selectedPass} PASS</span>
+                        <span className="bms-summary-pill">SIGMA PASS</span>
                         <span className="bms-summary-price">
-                          ₹{passes.find(p => p.code === selectedPass)?.price ?? (selectedPass === 'SIGMA' ? 499 : selectedPass === 'COUPLE' ? 899 : 1699)}
+                          ₹{sigmaPass.price}
                         </span>
                         <span className="bms-summary-entries">
-                          ({passes.find(p => p.code === selectedPass)?.persons ?? (selectedPass === 'SIGMA' ? 1 : selectedPass === 'COUPLE' ? 2 : 4)} Person{((passes.find(p => p.code === selectedPass)?.persons ?? 1) > 1) ? 's' : ''} Entry)
+                          ({sigmaPass.persons} Person{sigmaPass.persons > 1 ? 's' : ''} Entry)
                         </span>
                       </div>
                       <p className="bms-redirect-desc">
@@ -827,7 +817,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           className="btn btn-primary bms-redirect-continue"
                           onClick={() => {
                             if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
-                            window.open(getBmsUrl(selectedPass), '_blank', 'noopener,noreferrer');
+                            window.open(getBmsUrl('SIGMA'), '_blank', 'noopener,noreferrer');
                             setShowBmsModal(false);
                           }}
                         >
