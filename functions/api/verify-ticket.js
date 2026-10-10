@@ -1,3 +1,4 @@
+//find the ticket in the database and return the booking details, or update the status to COLLECTED or CHECKED_IN based on the action specified in the request body.
 import { getDb } from '../_lib/db.js';
 import { authenticateRequest } from '../_lib/auth.js';
 
