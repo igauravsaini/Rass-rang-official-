@@ -259,9 +259,8 @@ export const Hero: React.FC = () => {
           </picture>
         </div>
 
-        {/* 2, 3, 4. Top Royal Maroon Plaque & Heading */}
+        {/* 2. Top Royal Maroon Plaque */}
         <div className="hero-top-heading">
-          {/* Royal Scalloped Maroon Plaque: DEAR GORAKHPUR! */}
           <div className="dear-gorakhpur-plaque">
             <div className="plaque-crown-crest"></div>
             <div className="plaque-filigree-bracket left"></div>
@@ -269,27 +268,9 @@ export const Hero: React.FC = () => {
             <div className="plaque-filigree-bracket right"></div>
             <div className="plaque-lotus-finial"></div>
           </div>
-
-          {/* Deep Navy Banner: GET READY FOR THE BEST NAVRATRI EVE */}
-          <div className="get-ready-banner">
-            <span className="banner-border top"></span>
-            <span className="get-ready-text">GET READY FOR THE BEST NAVRATRI EVE</span>
-            <span className="banner-border bottom"></span>
-          </div>
-
-          <div className="banner-lotus-accent" aria-hidden="true">
-            <svg viewBox="0 0 24 16" width="22" height="14" className="lotus-svg">
-              <path
-                d="M12 1 C13 5, 17 8, 23 10 C18 12, 14 14, 12 15 C10 14, 6 12, 1 10 C7 8, 11 5, 12 1 Z"
-                fill="url(#goldGrad)"
-              />
-              <circle cx="12" cy="9" r="1.5" fill="#FFF2D1" />
-            </svg>
-          </div>
-          <div className="small-at">at</div>
         </div>
 
-        {/* 5, 6, 7. Title Block (Brochure 3D Embossed Metallic Champagne Gold) */}
+        {/* 3. Title Block (Matching Reference Image 2: Regal Cinzel Typography & Glow) */}
         <h1
           className="hero-title"
           style={{
@@ -297,63 +278,32 @@ export const Hero: React.FC = () => {
             transition: 'transform 0.25s ease-out',
           }}
         >
-          <span className="hero-title-main">RAAS-RANG</span>
-          <span className="hero-title-sub">GARBA NIGHTS</span>
-          <span className="hero-title-year">
-            <span className="year-flourish-svg left" aria-hidden="true">
-              <svg viewBox="0 0 70 30" width="60" height="26">
-                <path
-                  d="M68 22 C55 26, 42 16, 28 20 C16 24, 8 12, 2 15 C12 9, 24 12, 36 6 C48 0, 58 12, 68 10"
-                  fill="none"
-                  stroke="url(#goldGrad)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <circle cx="4" cy="15" r="3" fill="url(#goldGrad)" />
-                <circle cx="68" cy="22" r="2.5" fill="url(#goldGrad)" />
-              </svg>
-            </span>
-            <span className="year-number">2026</span>
-            <span className="year-flourish-svg right" aria-hidden="true">
-              <svg viewBox="0 0 70 30" width="60" height="26" style={{ transform: 'scaleX(-1)' }}>
-                <path
-                  d="M68 22 C55 26, 42 16, 28 20 C16 24, 8 12, 2 15 C12 9, 24 12, 36 6 C48 0, 58 12, 68 10"
-                  fill="none"
-                  stroke="url(#goldGrad)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <circle cx="4" cy="15" r="3" fill="url(#goldGrad)" />
-                <circle cx="68" cy="22" r="2.5" fill="url(#goldGrad)" />
-              </svg>
-            </span>
+          <span className="hero-title-main">RAAS~RANG</span>
+          <span className="hero-title-sub">
+            GARBA NIGHTS <span className="title-bullet">·</span> 2026
           </span>
+          <div className="hero-location-line" aria-label="Gorakhpur">
+            <span className="location-rule left"></span>
+            <span className="location-text">GORAKHPUR</span>
+            <span className="location-rule right"></span>
+          </div>
         </h1>
 
-        {/* 8. Emotional Identity: Hindi Motto */}
+        {/* 4. Emotional Identity: Hindi Motto (भक्ति • संस्कृति • संगम) */}
         <p className="hero-tagline-hindi">
           <span className="hindi-word">भक्ति</span>
-          <span className="tagline-lotus-svg" aria-hidden="true">
-            <svg viewBox="0 0 20 14" width="18" height="12">
-              <path
-                d="M10 1 C11 4, 14 7, 19 8 C15 10, 12 11, 10 13 C8 11, 5 10, 1 8 C6 7, 9 4, 10 1 Z"
-                fill="url(#goldGrad)"
-              />
-            </svg>
-          </span>
+          <span className="tagline-bullet" aria-hidden="true">◆</span>
           <span className="hindi-word">संस्कृति</span>
-          <span className="tagline-lotus-svg" aria-hidden="true">
-            <svg viewBox="0 0 20 14" width="18" height="12">
-              <path
-                d="M10 1 C11 4, 14 7, 19 8 C15 10, 12 11, 10 13 C8 11, 5 10, 1 8 C6 7, 9 4, 10 1 Z"
-                fill="url(#goldGrad)"
-              />
-            </svg>
-          </span>
+          <span className="tagline-bullet" aria-hidden="true">◆</span>
           <span className="hindi-word">संगम</span>
         </p>
 
-        {/* 9. Decorative Lotus Divider */}
+        {/* 5. Subtitle Tagline (Matching Reference Image 2) */}
+        <div className="hero-bottom-tagline">
+          GET READY FOR THE BEST NAVRATRI EVE
+        </div>
+
+        {/* 6. Decorative Lotus Divider */}
         <div className="hero-ornament" aria-hidden="true">
           <span className="ornament-scroll-left">❧</span>
           <span className="ornament-line"></span>
