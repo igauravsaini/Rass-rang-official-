@@ -5,35 +5,37 @@ export function useScrollSpy(sectionIds: string[], offset: number = SCROLLSPY_OF
   const [activeId, setActiveId] = useState<string>(sectionIds[0] || 'home');
 
   useEffect(() => {
-    let ticking = false;
+    const elements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
 
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollY = window.pageYOffset + offset;
+    if (elements.length === 0) return;
 
-          for (const id of sectionIds) {
-            const el = document.getElementById(id);
-            if (el) {
-              const top = el.offsetTop;
-              const height = el.offsetHeight;
-              if (scrollY >= top && scrollY < top + height) {
-                setActiveId((prev) => (prev !== id ? id : prev));
-                break;
-              }
-            }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length > 0) {
+          visible.sort(
+            (a, b) =>
+              Math.abs(a.boundingClientRect.top - offset) -
+              Math.abs(b.boundingClientRect.top - offset)
+          );
+          const targetId = visible[0].target.id;
+          if (targetId) {
+            setActiveId((prev) => (prev !== targetId ? targetId : prev));
           }
-          ticking = false;
-        });
-        ticking = true;
+        }
+      },
+      {
+        rootMargin: `-${offset}px 0px -40% 0px`,
+        threshold: [0, 0.25, 0.5],
       }
-    };
+    );
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
   }, [sectionIds, offset]);
 
   return activeId;
 }
+

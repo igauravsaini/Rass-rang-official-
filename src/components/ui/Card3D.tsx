@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 
 export interface Card3DProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -18,10 +18,8 @@ export const Card3D: React.FC<Card3DProps> = ({
   ...props
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const rAFRef = useRef<number | null>(null);
-  const [transform, setTransform] = useState('');
-  const [glowStyle, setGlowStyle] = useState<React.CSSProperties>({ opacity: 0 });
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -48,17 +46,13 @@ export const Card3D: React.FC<Card3DProps> = ({
           const rotateX = ((centerY - y) / centerY) * maxTilt;
           const rotateY = ((x - centerX) / centerX) * maxTilt;
 
-          setTransform(
-            `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-6px) translateZ(12px) scale3d(${scale}, ${scale}, ${scale})`
-          );
+          card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-6px) translateZ(12px) scale3d(${scale}, ${scale}, ${scale})`;
 
-          if (glow) {
+          if (glow && glowRef.current) {
             const glowX = (x / rect.width) * 100;
             const glowY = (y / rect.height) * 100;
-            setGlowStyle({
-              opacity: 1,
-              background: `radial-gradient(circle at ${glowX.toFixed(1)}% ${glowY.toFixed(1)}%, rgba(240, 180, 41, 0.22) 0%, rgba(255, 45, 120, 0.12) 40%, transparent 70%)`,
-            });
+            glowRef.current.style.opacity = '1';
+            glowRef.current.style.background = `radial-gradient(circle at ${glowX.toFixed(1)}% ${glowY.toFixed(1)}%, rgba(240, 180, 41, 0.22) 0%, rgba(255, 45, 120, 0.12) 40%, transparent 70%)`;
           }
         }
         rAFRef.current = null;
@@ -68,7 +62,9 @@ export const Card3D: React.FC<Card3DProps> = ({
   );
 
   const handleMouseEnter = () => {
-    setIsHovered(true);
+    if (cardRef.current) {
+      cardRef.current.style.transition = 'transform 0.1s ease-out';
+    }
   };
 
   const handleMouseLeave = () => {
@@ -76,9 +72,13 @@ export const Card3D: React.FC<Card3DProps> = ({
       window.cancelAnimationFrame(rAFRef.current);
       rAFRef.current = null;
     }
-    setIsHovered(false);
-    setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) translateZ(0px) scale3d(1, 1, 1)');
-    setGlowStyle({ opacity: 0 });
+    if (cardRef.current) {
+      cardRef.current.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+      cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) translateZ(0px) scale3d(1, 1, 1)';
+    }
+    if (glow && glowRef.current) {
+      glowRef.current.style.opacity = '0';
+    }
   };
 
   return (
@@ -90,25 +90,25 @@ export const Card3D: React.FC<Card3DProps> = ({
       onMouseLeave={handleMouseLeave}
       style={{
         ...style,
-        transform: transform || undefined,
-        transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         transformStyle: 'preserve-3d',
         position: 'relative',
+        transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
       {...props}
     >
       {glow && (
         <div
+          ref={glowRef}
           className="card-3d-specular-glow"
           aria-hidden="true"
           style={{
-            ...glowStyle,
             position: 'absolute',
             inset: 0,
             borderRadius: 'inherit',
             pointerEvents: 'none',
             zIndex: 3,
-            transition: isHovered ? 'opacity 0.2s ease-out' : 'opacity 0.5s ease-out',
+            opacity: 0,
+            transition: 'opacity 0.25s ease-out',
             mixBlendMode: 'screen',
           }}
         />
@@ -117,3 +117,4 @@ export const Card3D: React.FC<Card3DProps> = ({
     </div>
   );
 };
+

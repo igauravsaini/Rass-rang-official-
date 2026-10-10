@@ -1,8 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PassItem, CollectionSpot, VirtualTicketData, PassCode } from '../../types/booking';
 import { VirtualTicket } from './VirtualTicket';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { safeParseJson } from '../../lib/api';
+import {
+  IconTicket, IconGlobe, IconSearch,
+  IconAlertTriangle, IconInfo,
+  IconBuilding, IconMapPin, IconClock, IconPhone, IconLightbulb,
+  IconExternalLink, IconShieldCheck,
+} from './BookingIcons';
 import '../../styles/booking.css';
 
 interface BookingModalProps {
@@ -50,25 +56,47 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Completed or Restored Ticket
   const [activeTicket, setActiveTicket] = useState<VirtualTicketData | null>(null);
 
-  // Instagram DM Toast & Flow
-  const [showCopiedToast, setShowCopiedToast] = useState(false);
+  // BookMyShow redirect flow
+  const [showBmsModal, setShowBmsModal] = useState(false);
+  const [bmsProgress, setBmsProgress] = useState(0);
+  const bmsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleInstagramDM = () => {
-    const passObj = passes.find((p) => p.code === selectedPass);
-    const passPrice = passObj ? passObj.price : selectedPass === 'SIGMA' ? 499 : selectedPass === 'FAMILY' ? 1699 : 899;
-    const message = `Hi! I want to buy 1 ${selectedPass} Pass (₹${passPrice}) for Raas~Rang 2026.`;
+  const BMS_BASE_URL = 'https://in.bookmyshow.com/activities/raasrang-garba-nights-2026/ET00521642';
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(message).catch(() => {});
-    }
+  const getBmsUrl = useCallback((passCode: PassCode) => {
+    return `${BMS_BASE_URL}?utm_source=site&utm_medium=passcard&utm_campaign=raasrang2026&pass=${passCode.toLowerCase()}`;
+  }, []);
 
-    setShowCopiedToast(true);
-    setTimeout(() => {
-      setShowCopiedToast(false);
-    }, 3500);
+  const handleBookOnBms = () => {
+    setShowBmsModal(true);
+    setBmsProgress(0);
 
-    window.open('https://ig.me/m/raasrang_gkp', '_blank', 'noopener,noreferrer');
+    let tick = 0;
+    bmsTimerRef.current = setInterval(() => {
+      tick += 1;
+      const pct = Math.min((tick / 30) * 100, 100);
+      setBmsProgress(pct);
+
+      if (tick >= 30) {
+        if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
+        window.open(getBmsUrl(selectedPass), '_blank', 'noopener,noreferrer');
+        setTimeout(() => setShowBmsModal(false), 400);
+      }
+    }, 100); // 30 ticks × 100ms = 3 seconds
   };
+
+  const cancelBmsRedirect = () => {
+    if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
+    setShowBmsModal(false);
+    setBmsProgress(0);
+  };
+
+  // Clean up BMS timer on unmount
+  useEffect(() => {
+    return () => {
+      if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
+    };
+  }, []);
 
   // Sync mode when defaultMode or modal open changes
   useEffect(() => {
@@ -515,7 +543,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </h2>
               <p className="booking-modal-subtitle">
                 {activeTab === 'online'
-                  ? 'Online pass purchase is launching soon. DM our official Instagram desk to purchase your pass instantly!'
+                  ? 'Book official online passes securely via BookMyShow — our official online ticketing partner.'
                   : activeTab === 'offline'
                   ? 'Reserve your physical entry wristbands with zero online payment. Pay & collect at Caha Gorakhpur (Taramandal).'
                   : 'Already reserved an online or offline pass? Enter your ticket number and mobile last 4 digits to view and download it.'}
@@ -531,7 +559,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`booking-tab ${activeTab === 'offline' ? 'active' : ''}`}
                 onClick={() => setActiveTab('offline')}
               >
-                🎟️ Get Offline Pass
+                <IconTicket size={16} /> Get Offline Pass
               </button>
               <button
                 type="button"
@@ -540,7 +568,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`booking-tab ${activeTab === 'online' ? 'active' : ''}`}
                 onClick={() => setActiveTab('online')}
               >
-                🌐 Get Online Pass
+                <IconGlobe size={16} /> Get Online Pass
               </button>
               <button
                 type="button"
@@ -549,7 +577,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 className={`booking-tab ${activeTab === 'lookup' ? 'active' : ''}`}
                 onClick={() => setActiveTab('lookup')}
               >
-                🔍 Find My Ticket
+                <IconSearch size={16} /> Find My Ticket
               </button>
             </div>
 
@@ -558,13 +586,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <form onSubmit={handleBookingSubmit} className="booking-form" noValidate>
                 {formError && (
                   <div className="booking-alert error" role="alert">
-                    ⚠️ {formError}
+                    <IconAlertTriangle size={16} /> {formError}
                   </div>
                 )}
 
                 {configError && (
                   <div className="booking-alert warning" role="alert">
-                    ℹ️ {configError}
+                    <IconInfo size={16} /> {configError}
                   </div>
                 )}
 
@@ -649,16 +677,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     Official Ticket Collection Spot <span className="req">*</span>
                   </label>
                   <div className="spot-preview-card offline-spot">
-                    <div className="spot-badge-tag">🏢 Official Collection Counter (Single Authorized Spot)</div>
-                    <div className="spot-card-title">📍 Caha Gorakhpur</div>
+                    <div className="spot-badge-tag"><IconBuilding size={14} /> Official Collection Counter (Single Authorized Spot)</div>
+                    <div className="spot-card-title"><IconMapPin size={16} /> Caha Gorakhpur</div>
                     <div className="spot-card-address">
                       Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal, Gorakhpur, Uttar Pradesh 273017
                     </div>
                     <div className="spot-card-meta">
-                      <span>🕒 Timings: 10:00 AM – 08:00 PM (Daily)</span>
-                      <span>📞 Helpdesk: 9876543210</span>
+                      <span><IconClock size={14} /> Timings: 10:00 AM – 08:00 PM (Daily)</span>
+                      <span><IconPhone size={14} /> Helpdesk: 9876543210</span>
                     </div>
-                    <span className="spot-card-note">💡 Present your reservation number here to make payment and collect physical entry wristbands.</span>
+                    <span className="spot-card-note"><IconLightbulb size={14} /> Present your reservation number here to make payment and collect physical entry wristbands.</span>
                   </div>
                 </div>
 
@@ -696,38 +724,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <span className="spinner"></span> Reserving Offline Pass...
                     </span>
                   ) : (
-                    '🎟️ Get Offline Pass'
+                    <><IconTicket size={18} /> Get Offline Pass</>
                   )}
                 </button>
               </form>
             ) : activeTab === 'online' ? (
-              /* TAB: ONLINE PASS — "COMING VERY SOON" FLOW */
-              <div className="booking-form coming-soon-container">
-                {/* Animated lotus icon with sparkle decorations */}
-                <div className="coming-soon-visual">
-                  <div className="coming-soon-icon-wrap">
-                    <span className="coming-soon-sparkle sparkle-1">✦</span>
-                    <span className="coming-soon-sparkle sparkle-2">✧</span>
-                    <span className="coming-soon-sparkle sparkle-3">✦</span>
-                    <div className="coming-soon-icon">🪷</div>
-                    <span className="coming-soon-sparkle sparkle-4">✧</span>
-                    <span className="coming-soon-sparkle sparkle-5">✦</span>
-                    <span className="coming-soon-sparkle sparkle-6">✧</span>
+              /* TAB: ONLINE PASS — BOOK ON BOOKMYSHOW */
+              <div className="booking-form bms-online-container">
+                {/* Header visual */}
+                <div className="bms-online-hero">
+                  <div className="bms-online-icon-wrap">
+                    <IconGlobe size={48} className="bms-hero-icon" />
                   </div>
-                  <h3 className="coming-soon-title">Coming Very Soon!</h3>
-                  <p className="coming-soon-desc">
-                    Online pass purchase is launching very soon. In the meantime, you can buy your pass instantly by messaging us on Instagram!
+                  <h3 className="bms-online-title">Book on BookMyShow</h3>
+                  <p className="bms-online-desc">
+                    Purchase your official online pass directly on BookMyShow — India's most trusted ticketing platform. Select your pass below and you'll be redirected securely.
                   </p>
                 </div>
 
-                {/* Pass selector (to contextualize the DM message) */}
+                {/* Pass selector */}
                 <div className="form-group" style={{ width: '100%' }}>
-                  <label>Select Pass to Inquire About</label>
+                  <label>Select Your Pass</label>
                   <div className="pass-selector-grid">
                     {(passes.length > 0 ? passes : [
-                      { id: 1, code: 'SIGMA' as PassCode, name: 'Sigma Pass', persons: 1, price: 499 },
-                      { id: 2, code: 'COUPLE' as PassCode, name: 'Couple Pass', persons: 2, price: 899 },
-                      { id: 3, code: 'FAMILY' as PassCode, name: 'Family Pass', persons: 4, price: 1699 },
+                      { id: 1, code: 'SIGMA' as PassCode, label: 'Sigma Pass', persons: 1, price: 499 },
+                      { id: 2, code: 'COUPLE' as PassCode, label: 'Couple Pass', persons: 2, price: 899 },
+                      { id: 3, code: 'FAMILY' as PassCode, label: 'Family Pass', persons: 4, price: 1699 },
                     ]).map((pass) => (
                       <label
                         key={pass.code}
@@ -735,7 +757,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       >
                         <input
                           type="radio"
-                          name="dmPassType"
+                          name="bmsPassType"
                           value={pass.code}
                           checked={selectedPass === pass.code}
                           onChange={() => setSelectedPass(pass.code)}
@@ -751,30 +773,84 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 </div>
 
-                {/* "DM Now to Buy — @raasrang_gkp" button (Instagram gradient) */}
+                {/* "Book on BookMyShow" CTA button */}
                 <button
                   type="button"
-                  className="btn btn-primary booking-submit-btn dm-now-btn"
-                  onClick={handleInstagramDM}
+                  className="btn btn-primary booking-submit-btn bms-cta-btn"
+                  onClick={handleBookOnBms}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                  DM Now to Buy — @raasrang_gkp
+                  <IconExternalLink size={18} />
+                  Book on BookMyShow — {selectedPass} Pass
                 </button>
 
-                <p className="coming-soon-note">
-                  💬 Your purchase message will be auto-copied. Just paste it in the Instagram chat!
+                <p className="bms-online-note">
+                  <IconShieldCheck size={14} /> Booked on BookMyShow? Your ticket will be sent by BookMyShow.
                 </p>
+
+                {/* BMS Redirect Progress Modal */}
+                {showBmsModal && (
+                  <div className="bms-redirect-overlay" onClick={cancelBmsRedirect}>
+                    <div className="bms-redirect-modal" onClick={(e) => e.stopPropagation()}>
+                      <div className="bms-redirect-spinner">
+                        <svg viewBox="0 0 50 50" className="bms-circular-progress">
+                          <circle
+                            cx="25" cy="25" r="20"
+                            fill="none" stroke="rgba(240,180,41,0.15)" strokeWidth="4"
+                          />
+                          <circle
+                            cx="25" cy="25" r="20"
+                            fill="none" stroke="var(--antique-gold)" strokeWidth="4"
+                            strokeLinecap="round"
+                            strokeDasharray={`${2 * Math.PI * 20}`}
+                            strokeDashoffset={`${2 * Math.PI * 20 * (1 - bmsProgress / 100)}`}
+                            style={{ transition: 'stroke-dashoffset 0.1s linear', transform: 'rotate(-90deg)', transformOrigin: 'center' }}
+                          />
+                        </svg>
+                        <span className="bms-redirect-pct">{Math.round(bmsProgress)}%</span>
+                      </div>
+                      <h4 className="bms-redirect-title">Redirecting to BookMyShow</h4>
+                      <div className="bms-redirect-summary">
+                        <span className="bms-summary-pill">{selectedPass} PASS</span>
+                        <span className="bms-summary-price">
+                          ₹{passes.find(p => p.code === selectedPass)?.price ?? (selectedPass === 'SIGMA' ? 499 : selectedPass === 'COUPLE' ? 899 : 1699)}
+                        </span>
+                        <span className="bms-summary-entries">
+                          ({passes.find(p => p.code === selectedPass)?.persons ?? (selectedPass === 'SIGMA' ? 1 : selectedPass === 'COUPLE' ? 2 : 4)} Person{((passes.find(p => p.code === selectedPass)?.persons ?? 1) > 1) ? 's' : ''} Entry)
+                        </span>
+                      </div>
+                      <p className="bms-redirect-desc">
+                        You are being redirected to BookMyShow, our official online ticketing partner. Your payment is completed securely there.
+                      </p>
+                      <div className="bms-redirect-actions">
+                        <button
+                          type="button"
+                          className="btn btn-primary bms-redirect-continue"
+                          onClick={() => {
+                            if (bmsTimerRef.current) clearInterval(bmsTimerRef.current);
+                            window.open(getBmsUrl(selectedPass), '_blank', 'noopener,noreferrer');
+                            setShowBmsModal(false);
+                          }}
+                        >
+                          Continue now
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline bms-redirect-cancel"
+                          onClick={cancelBmsRedirect}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* TAB 2: FIND MY TICKET LOOKUP */
               <form onSubmit={handleLookupSubmit} className="booking-form lookup-form" noValidate>
                 {lookupError && (
                   <div className="booking-alert error" role="alert">
-                    ⚠️ {lookupError}
+                    <IconAlertTriangle size={16} /> {lookupError}
                   </div>
                 )}
 
@@ -812,7 +888,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   className="btn btn-secondary booking-submit-btn"
                   disabled={isLookingUp}
                 >
-                  {isLookingUp ? 'Searching Database...' : '🔎 Retrieve My Ticket'}
+                  {isLookingUp ? 'Searching Database...' : <><IconSearch size={16} /> Retrieve My Ticket</>}
                 </button>
               </form>
             )}
@@ -820,12 +896,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         )}
       </div>
 
-      {/* Green Toast Notification: "Message copied to clipboard!" */}
-      {showCopiedToast && (
-        <div className="copied-toast" role="status" aria-live="polite">
-          <span>✅</span> Message copied to clipboard!
-        </div>
-      )}
+      {/* Toast notifications removed — BMS redirect flow replaces DM flow */}
     </div>
   );
 };

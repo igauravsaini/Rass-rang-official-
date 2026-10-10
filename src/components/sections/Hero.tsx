@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { siteConfig } from '../../data/site';
 import { useCountdown } from '../../hooks/useCountdown';
 
 export const Hero: React.FC = () => {
   const { days, hours, minutes, seconds, isStarted } = useCountdown();
-  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const heroSectionRef = useRef<HTMLElement>(null);
   const mouseAnimRef = useRef<number | null>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -19,7 +19,10 @@ export const Hero: React.FC = () => {
       const rect = currentTarget.getBoundingClientRect();
       const x = (clientX - rect.left) / rect.width - 0.5;
       const y = (clientY - rect.top) / rect.height - 0.5;
-      setMouseOffset({ x, y });
+      if (heroSectionRef.current) {
+        heroSectionRef.current.style.setProperty('--mouse-x', x.toFixed(3));
+        heroSectionRef.current.style.setProperty('--mouse-y', y.toFixed(3));
+      }
       mouseAnimRef.current = null;
     });
   }, []);
@@ -29,7 +32,10 @@ export const Hero: React.FC = () => {
       window.cancelAnimationFrame(mouseAnimRef.current);
       mouseAnimRef.current = null;
     }
-    setMouseOffset({ x: 0, y: 0 });
+    if (heroSectionRef.current) {
+      heroSectionRef.current.style.setProperty('--mouse-x', '0');
+      heroSectionRef.current.style.setProperty('--mouse-y', '0');
+    }
   }, []);
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -47,6 +53,7 @@ export const Hero: React.FC = () => {
   return (
     <section
       id="home"
+      ref={heroSectionRef}
       className="hero-section"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -55,7 +62,7 @@ export const Hero: React.FC = () => {
         <div
           className="hero-bg-image"
           style={{
-            transform: `translate3d(${-mouseOffset.x * 10}px, ${-mouseOffset.y * 8}px, 0)`,
+            transform: 'translate3d(calc(var(--mouse-x, 0) * -10px), calc(var(--mouse-y, 0) * -8px), 0)',
             transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         ></div>
@@ -92,7 +99,7 @@ export const Hero: React.FC = () => {
         className="hero-drapes hero-drape-left"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 6}px, ${mouseOffset.y * 4}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 6px), calc(var(--mouse-y, 0) * 4px), 0)',
           transition: 'transform 0.3s ease-out',
         }}
       >
@@ -104,7 +111,7 @@ export const Hero: React.FC = () => {
         className="hero-drapes hero-drape-right"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 6}px, ${mouseOffset.y * 4}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 6px), calc(var(--mouse-y, 0) * 4px), 0)',
           transition: 'transform 0.3s ease-out',
         }}
       >
@@ -118,7 +125,7 @@ export const Hero: React.FC = () => {
         className="hero-bells-cluster bells-left"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 14}px, ${mouseOffset.y * 10}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 14px), calc(var(--mouse-y, 0) * 10px), 0)',
           transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
@@ -155,7 +162,7 @@ export const Hero: React.FC = () => {
         className="hero-bells-cluster bells-right"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 14}px, ${mouseOffset.y * 10}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 14px), calc(var(--mouse-y, 0) * 10px), 0)',
           transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
@@ -205,7 +212,7 @@ export const Hero: React.FC = () => {
         className="floating-diya diya-bl"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 22}px, ${mouseOffset.y * 16}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 22px), calc(var(--mouse-y, 0) * 16px), 0)',
           transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
@@ -217,7 +224,7 @@ export const Hero: React.FC = () => {
         className="floating-diya diya-br"
         aria-hidden="true"
         style={{
-          transform: `translate3d(${mouseOffset.x * 22}px, ${mouseOffset.y * 16}px, 0)`,
+          transform: 'translate3d(calc(var(--mouse-x, 0) * 22px), calc(var(--mouse-y, 0) * 16px), 0)',
           transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
@@ -232,7 +239,7 @@ export const Hero: React.FC = () => {
         <div
           className="hero-logo-showcase"
           style={{
-            transform: `translate3d(${mouseOffset.x * 8}px, ${mouseOffset.y * 6}px, 0)`,
+            transform: 'translate3d(calc(var(--mouse-x, 0) * 8px), calc(var(--mouse-y, 0) * 6px), 0)',
             transition: 'transform 0.25s ease-out',
           }}
         >
@@ -241,7 +248,7 @@ export const Hero: React.FC = () => {
           <picture>
             <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
             <img
-              src="/assets/images/logo.jpg"
+              src="/assets/images/logo-360.webp"
               alt="Raas Rang Official Logo"
               className="hero-logo-img"
               width={130}
@@ -286,7 +293,7 @@ export const Hero: React.FC = () => {
         <h1
           className="hero-title"
           style={{
-            transform: `translate3d(${mouseOffset.x * 5}px, ${mouseOffset.y * 3}px, 0)`,
+            transform: 'translate3d(calc(var(--mouse-x, 0) * 5px), calc(var(--mouse-y, 0) * 3px), 0)',
             transition: 'transform 0.25s ease-out',
           }}
         >
@@ -367,7 +374,7 @@ export const Hero: React.FC = () => {
         <div
           className="hero-info-frames"
           style={{
-            transform: `translate3d(${mouseOffset.x * 7}px, ${mouseOffset.y * 5}px, 0)`,
+            transform: 'translate3d(calc(var(--mouse-x, 0) * 7px), calc(var(--mouse-y, 0) * 5px), 0)',
             transition: 'transform 0.25s ease-out',
           }}
         >

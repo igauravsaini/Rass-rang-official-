@@ -65,7 +65,7 @@ export const App: React.FC = () => {
         history.replaceState(null, '', window.location.pathname);
       }
     }
-  }, [currentPath]);
+  }, []);
 
   // Separate Admin & Scanner Routes
   if (currentPath === '/admin/scan' || currentPath === '/admin/scan/') {

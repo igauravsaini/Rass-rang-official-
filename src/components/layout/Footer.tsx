@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
             <picture>
               <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
               <img
-                src="/assets/images/logo.jpg"
+                src="/assets/images/logo-360.webp"
                 alt="Raas Rang Logo"
                 className="footer-logo-img"
                 width={60}

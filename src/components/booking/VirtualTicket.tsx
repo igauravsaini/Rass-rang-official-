@@ -1,11 +1,172 @@
 import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { VirtualTicketData } from '../../types/booking';
+import {
+  IconMapPin, IconClock, IconPhone,
+  IconAlertTriangle, IconCalendar,
+  IconCopy, IconCheck, IconImage, IconFile, IconMessageCircle,
+} from './BookingIcons';
 
 interface VirtualTicketProps {
   ticket: VirtualTicketData;
   onBookAnother?: () => void;
   onClose?: () => void;
+}
+
+/** Helper to draw rounded rectangle on Canvas */
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+/**
+ * Generates an exact 2634 × 1370 px (2x resolution, 1.92:1 landscape) ticket image.
+ * Uses the official Sigma, Couple, or Family base art, places the attendee name & booking ID
+ * on the left panel, and cleanly replaces the stub price with the white rounded QR tile & monospace ID.
+ */
+async function generateHighResTicketCanvas(ticket: VirtualTicketData): Promise<HTMLCanvasElement> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2634;
+  canvas.height = 1370;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not create 2D canvas context');
+
+  // Select background and theme by pass type
+  let bgSrc = '/assets/images/tickets/ticket-bg-sigma.jpg';
+  let stubBg = '#0c193c';
+  if (ticket.passType === 'COUPLE') {
+    bgSrc = '/assets/images/tickets/ticket-bg-couple.jpg';
+    stubBg = '#240510';
+  } else if (ticket.passType === 'FAMILY') {
+    bgSrc = '/assets/images/tickets/ticket-bg-family.jpg';
+    stubBg = '#041a14';
+  }
+
+  // 1. Draw base master background artwork
+  const bgImg = new Image();
+  bgImg.crossOrigin = 'anonymous';
+  await new Promise<void>((resolve) => {
+    bgImg.onload = () => resolve();
+    bgImg.onerror = () => resolve();
+    bgImg.src = bgSrc;
+  });
+
+  if (bgImg.complete && bgImg.naturalWidth > 0) {
+    ctx.drawImage(bgImg, 0, 0, 2634, 1370);
+  } else {
+    // Fallback gradient if asset unavailable
+    const grad = ctx.createLinearGradient(0, 0, 2634, 1370);
+    grad.addColorStop(0, '#0a0314');
+    grad.addColorStop(1, '#1b092a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 2634, 1370);
+  }
+
+  // 2. Cover price area on the right stub with theme color
+  ctx.save();
+  ctx.fillStyle = stubBg;
+  drawRoundedRect(ctx, 2080, 915, 370, 340, 16);
+  ctx.fill();
+  ctx.restore();
+
+  // 3. Draw white rounded tile for QR code
+  ctx.save();
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 3;
+  drawRoundedRect(ctx, 2145, 930, 240, 240, 18);
+  ctx.fill();
+  ctx.stroke();
+
+  // Gold corner accents on white tile
+  ctx.strokeStyle = '#f0b429';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  // Top-left
+  ctx.beginPath();
+  ctx.moveTo(2145, 955); ctx.lineTo(2145, 930); ctx.lineTo(2170, 930);
+  ctx.stroke();
+  // Top-right
+  ctx.beginPath();
+  ctx.moveTo(2385, 955); ctx.lineTo(2385, 930); ctx.lineTo(2360, 930);
+  ctx.stroke();
+  // Bottom-left
+  ctx.beginPath();
+  ctx.moveTo(2145, 1145); ctx.lineTo(2145, 1170); ctx.lineTo(2170, 1170);
+  ctx.stroke();
+  // Bottom-right
+  ctx.beginPath();
+  ctx.moveTo(2385, 1145); ctx.lineTo(2385, 1170); ctx.lineTo(2360, 1170);
+  ctx.stroke();
+  ctx.restore();
+
+  // 4. Generate high-res QR code and draw inside tile
+  try {
+    const qrDataUrl = await QRCode.toDataURL(ticket.ticketNo, {
+      margin: 1,
+      width: 204,
+      color: { dark: '#0a0412', light: '#ffffff' },
+    });
+    const qrImg = new Image();
+    await new Promise<void>((res) => {
+      qrImg.onload = () => res();
+      qrImg.onerror = () => res();
+      qrImg.src = qrDataUrl;
+    });
+    ctx.drawImage(qrImg, 2163, 948, 204, 204);
+  } catch (err) {
+    console.error('[QR generation failed for export]', err);
+  }
+
+  // 5. Monospace Ticket ID under QR
+  ctx.save();
+  ctx.fillStyle = '#f5d77f';
+  ctx.font = 'bold 22px "Courier New", Courier, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(ticket.ticketNo, 2265, 1215);
+  ctx.restore();
+
+  // 6. Buyer Name and Booking ID on Left Panel near bottom strip
+  ctx.save();
+  const attendeeText = `ATTENDEE: ${ticket.name.toUpperCase()}   ✦   BOOKING ID: ${ticket.ticketNo}`;
+  ctx.font = '600 18px "Cinzel", "Playfair Display", Georgia, serif';
+  const textWidth = ctx.measureText(attendeeText).width;
+  const pillW = Math.max(textWidth + 80, 780);
+  const pillX = 1150 - pillW / 2;
+
+  // Translucent dark gold pill background
+  ctx.fillStyle = 'rgba(6, 2, 14, 0.88)';
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 1.3;
+  drawRoundedRect(ctx, pillX, 990, pillW, 38, 19);
+  ctx.fill();
+  ctx.stroke();
+
+  // Pill text in gold
+  ctx.fillStyle = '#f5d77f';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(attendeeText, 1150, 1010);
+  ctx.restore();
+
+  return canvas;
 }
 
 export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnother, onClose }) => {
@@ -15,13 +176,14 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
   const [downloadingPng, setDownloadingPng] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
+  // Render on-screen QR code into the stub tile
   useEffect(() => {
     if (canvasRef.current && ticket.ticketNo) {
       QRCode.toCanvas(
         canvasRef.current,
         ticket.ticketNo,
         {
-          width: 170,
+          width: 140,
           margin: 1,
           color: {
             dark: '#0a0412',
@@ -41,379 +203,15 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const waitForTicketAssets = async () => {
-    // Wait for web fonts
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
-    }
-
-    // Wait for images inside the ticket
-    const images = Array.from(
-      ticketRef.current?.querySelectorAll('img') || []
-    );
-
-    await Promise.all(
-      images.map((img) => {
-        if (img.complete && img.naturalWidth > 0) {
-          return Promise.resolve();
-        }
-
-        return new Promise<void>((resolve) => {
-          const done = () => resolve();
-
-          img.addEventListener('load', done, { once: true });
-          img.addEventListener('error', done, { once: true });
-        });
-      })
-    );
-
-    // Make sure QR canvas has been painted
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => resolve())
-    );
-
-    // One additional frame for browser layout/paint
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => resolve())
-    );
-  };
-
-  const captureTicket = async () => {
-    if (!ticketRef.current) {
-      throw new Error('Ticket element is not available.');
-    }
-
-    await waitForTicketAssets();
-
-    const { default: html2canvas } = await import('html2canvas');
-
-    const element = ticketRef.current;
-
-    const canvas = await html2canvas(element, {
-      scale: 3,
-
-      useCORS: true,
-      allowTaint: false,
-
-      backgroundColor: '#12030a',
-
-      // Important for tickets inside a modal/scroll container
-      scrollX: 0,
-      scrollY: 0,
-
-      windowWidth: Math.max(
-        document.documentElement.clientWidth,
-        element.scrollWidth,
-        1200
-      ),
-
-      windowHeight: Math.max(
-        document.documentElement.clientHeight,
-        element.scrollHeight,
-        1600
-      ),
-
-      logging: false,
-
-      foreignObjectRendering: false,
-
-      onclone: (clonedDocument) => {
-        const clonedTicket = clonedDocument.querySelector(
-          '#virtualTicket'
-        ) as HTMLElement | null;
-
-        if (!clonedTicket) {
-          return;
-        }
-
-        let current: HTMLElement | null = clonedTicket;
-
-        while (current) {
-          current.style.opacity = '1';
-          current.style.transform = 'none';
-          current.style.filter = 'none';
-          current.style.webkitFilter = 'none';
-          current.style.backdropFilter = 'none';
-          current.style.setProperty('-webkit-backdrop-filter', 'none');
-          current.style.visibility = 'visible';
-          current.style.animation = 'none';
-          current.style.transition = 'none';
-          current.style.maxHeight = 'none';
-          current.style.overflow = 'visible';
-
-          current = current.parentElement;
-        }
-
-        clonedTicket.style.position = 'relative';
-        clonedTicket.style.display = 'block';
-        clonedTicket.style.visibility = 'visible';
-        clonedTicket.style.opacity = '1';
-        clonedTicket.style.transform = 'none';
-        clonedTicket.style.filter = 'none';
-        clonedTicket.style.background =
-          'radial-gradient(ellipse at center, #240510 0%, #12030a 60%, #060105 100%)';
-
-        clonedTicket.style.minHeight = '0';
-
-        clonedTicket.style.boxSizing = 'border-box';
-        clonedTicket.style.overflow = 'visible';
-
-        const qrCanvas =
-          clonedTicket.querySelector(
-            '.vt-qr-canvas'
-          ) as HTMLCanvasElement | null;
-
-        if (qrCanvas) {
-          qrCanvas.style.display = 'block';
-          qrCanvas.style.visibility = 'visible';
-          qrCanvas.style.opacity = '1';
-          qrCanvas.style.width = '170px';
-          qrCanvas.style.height = '170px';
-        }
-
-        const qrContainer =
-          clonedTicket.querySelector(
-            '.vt-qr-container'
-          ) as HTMLElement | null;
-
-        if (qrContainer) {
-          qrContainer.style.background = '#ffffff';
-          qrContainer.style.opacity = '1';
-          qrContainer.style.visibility = 'visible';
-        }
-
-        const logo =
-          clonedTicket.querySelector(
-            '.vt-logo-img'
-          ) as HTMLImageElement | null;
-
-        if (logo) {
-          logo.style.display = 'block';
-          logo.style.visibility = 'visible';
-          logo.style.opacity = '1';
-        }
-
-        const allElements =
-          clonedTicket.querySelectorAll<HTMLElement>('*');
-
-        allElements.forEach((child) => {
-          child.style.animation = 'none';
-          child.style.transition = 'none';
-        });
-
-        // -------------------------------------------------------
-        // EXPORT-ONLY ALIGNMENT FIXES
-        // -------------------------------------------------------
-
-        const exportStyle =
-          clonedDocument.createElement('style');
-
-        exportStyle.textContent = `
-          /* Keep the exported ticket at a stable desktop width */
-          #virtualTicket {
-            width: 700px !important;
-            max-width: 700px !important;
-            min-width: 700px !important;
-            margin: 0 auto !important;
-            box-sizing: border-box !important;
-            overflow: visible !important;
-          }
-
-          /* Header */
-          #virtualTicket .vt-header {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            align-items: center !important;
-          }
-
-          #virtualTicket .vt-logo-row {
-            display: flex !important;
-            align-items: center !important;
-          }
-
-          /* =======================================================
-             RESERVATION NUMBER — FINAL EXPORT FIX
-          ======================================================= */
-
-          #virtualTicket .vt-number-box {
-            width: 100% !important;
-            box-sizing: border-box !important;
-
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-
-            text-align: center !important;
-
-            padding: 18px 24px 20px !important;
-
-            overflow: hidden !important;
-          }
-
-          /* Label above gold strip */
-          #virtualTicket .vt-number-label {
-            display: block !important;
-
-            width: 100% !important;
-
-            margin: 0 0 7px !important;
-            padding: 0 !important;
-
-            text-align: center !important;
-
-            font-size: 14px !important;
-            line-height: 1.15 !important;
-
-            position: relative !important;
-            z-index: 10 !important;
-          }
-
-          /* Reservation number */
-         #virtualTicket .vt-ticket-no {
-          display: flex !important;
-
-          align-items: center !important;
-          justify-content: center !important;
-
-          width: 100% !important;
-
-          /* Make the gold area taller */
-          height: 82px !important;
-          min-height: 82px !important;
-
-          box-sizing: border-box !important;
-
-          margin: 0 !important;
-          padding: 6px 20px !important;
-
-          text-align: center !important;
-          white-space: nowrap !important;
-
-          font-size: 30px !important;
-          line-height: 1 !important;
-
-          position: relative !important;
-          z-index: 20 !important;
-
-          overflow: visible !important;
-        }
-
-          /* Small instruction below number */
-          #virtualTicket .vt-number-note {
-            display: block !important;
-
-            width: 100% !important;
-
-            margin: 7px 0 0 !important;
-            padding: 0 !important;
-
-            text-align: center !important;
-
-            font-size: 12px !important;
-            line-height: 1.25 !important;
-
-            position: relative !important;
-            z-index: 10 !important;
-          }
-
-          /* Details */
-          #virtualTicket .vt-details-grid {
-            width: 100% !important;
-            box-sizing: border-box !important;
-          }
-
-          #virtualTicket .vt-detail-item {
-            box-sizing: border-box !important;
-            min-width: 0 !important;
-          }
-
-          #virtualTicket .vt-val {
-            overflow-wrap: break-word !important;
-            word-break: normal !important;
-          }
-
-          /* Collection spot */
-          #virtualTicket .vt-detail-item.full-width {
-            width: 100% !important;
-            box-sizing: border-box !important;
-          }
-
-          #virtualTicket .vt-spot-address {
-            line-height: 1.45 !important;
-          }
-
-          #virtualTicket .vt-spot-timings {
-            line-height: 1.4 !important;
-          }
-
-          /* QR */
-          #virtualTicket .vt-qr-section {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-align: center !important;
-          }
-
-          #virtualTicket .vt-qr-container {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
-          }
-
-          /* Footer */
-          #virtualTicket .vt-footer {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            text-align: center !important;
-            padding-top: 20px !important;
-            padding-bottom: 16px !important;
-          }
-
-          #virtualTicket .vt-notice {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            text-align: center !important;
-            line-height: 1.45 !important;
-          }
-
-          #virtualTicket .vt-event-info {
-            width: 100% !important;
-            box-sizing: border-box !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            gap: 24px !important;
-            flex-wrap: wrap !important;
-            text-align: center !important;
-            line-height: 1.4 !important;
-          }
-        `;
-
-        clonedDocument.head.appendChild(exportStyle);
-      },
-    });
-
-    return canvas;
-  };
-
+  // Export ticket at 2x (2634 × 1370 px) as PNG
   const handleDownloadPng = async () => {
-    if (!ticketRef.current) return;
-
     try {
       setDownloadingPng(true);
-
-      const canvas = await captureTicket();
+      const canvas = await generateHighResTicketCanvas(ticket);
       const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.download = `RaasRang-Ticket-${ticket.ticketNo}.png`;
+      link.download = `RaasRang-${ticket.passType}-Pass-${ticket.ticketNo}.png`;
       link.href = dataUrl;
-
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -425,64 +223,30 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     }
   };
 
+  // Export ticket at landscape 1.92:1 as PDF
   const handleDownloadPdf = async () => {
-    if (!ticketRef.current) return;
-
     try {
       setDownloadingPdf(true);
-
       const [{ default: jsPDF }, canvas] = await Promise.all([
-        import('jspdf').then((module) => ({
-          default: module.jsPDF,
-        })),
-        captureTicket(),
+        import('jspdf').then((module) => ({ default: module.jsPDF })),
+        generateHighResTicketCanvas(ticket),
       ]);
 
       const imgData = canvas.toDataURL('image/png', 1.0);
 
-      // A5 portrait
-      const pageWidth = 148;
-      const pageHeight = 210;
-      const margin = 5;
-
-      const availableWidth = pageWidth - margin * 2;
-      const availableHeight = pageHeight - margin * 2;
-
-      const ratio = canvas.width / canvas.height;
-
-      let imageWidth = availableWidth;
-      let imageHeight = imageWidth / ratio;
-
-      if (imageHeight > availableHeight) {
-        imageHeight = availableHeight;
-        imageWidth = imageHeight * ratio;
-      }
-
-      const x = (pageWidth - imageWidth) / 2;
-      const y = (pageHeight - imageHeight) / 2;
+      // Landscape format matching 2634 / 1370 mm ratio (263.4 × 137.0 mm)
+      const pdfWidth = 263.4;
+      const pdfHeight = 137.0;
 
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
-        format: 'a5',
+        format: [pdfWidth, pdfHeight],
         compress: true,
       });
 
-      pdf.setFillColor(18, 3, 10);
-      pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-
-      pdf.addImage(
-        imgData,
-        'PNG',
-        x,
-        y,
-        imageWidth,
-        imageHeight,
-        undefined,
-        'FAST'
-      );
-
-      pdf.save(`RaasRang-Ticket-${ticket.ticketNo}.pdf`);
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      pdf.save(`RaasRang-${ticket.passType}-Pass-${ticket.ticketNo}.pdf`);
     } catch (err) {
       console.error('[Download PDF] Failed:', err);
       alert('Unable to generate the ticket PDF. Please try again.');
@@ -502,7 +266,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
         ? `Direct Gate Entry: Mahant Digvijaynath Park\n`
         : `Collection Spot: ${ticket.spot}\n`) +
       `Event Date: 17 Oct 2026 at Mahant Digvijaynath Park.\n` +
-      `Get your ticket here: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasranggkp.pages.dev'}/`
+      `Official Website: ${typeof window !== 'undefined' ? window.location.origin : 'https://raasrang.live'}/`
   );
 
   const getStatusColor = (status: string) => {
@@ -518,30 +282,70 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
     }
   };
 
+  const passBgImage =
+    ticket.passType === 'COUPLE'
+      ? '/assets/images/tickets/ticket-bg-couple.jpg'
+      : ticket.passType === 'FAMILY'
+      ? '/assets/images/tickets/ticket-bg-family.jpg'
+      : '/assets/images/tickets/ticket-bg-sigma.jpg';
+
+  const stubThemeColor =
+    ticket.passType === 'COUPLE'
+      ? '#240510'
+      : ticket.passType === 'FAMILY'
+      ? '#041a14'
+      : '#0c193c';
+
   return (
     <div className="virtual-ticket-wrapper">
-      {/* Printable / Downloadable Card */}
-      <div id="virtualTicket" ref={ticketRef} className="virtual-ticket-card">
-        {/* Ticket Header */}
-        <div className="vt-header">
-          <div className="vt-logo-row">
-            <picture>
-              <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
-              <img
-                src="/assets/images/logo.jpg"
-                alt="Raas Rang Logo"
-                className="vt-logo-img"
-                width={52}
-                height={52}
-                decoding="async"
-              />
-            </picture>
-            <div>
-              <h2 className="vt-brand">RAAS~RANG GKP</h2>
-              <p className="vt-subbrand">
-                {isOnline ? 'NAVRATRI 2026 • OFFICIAL ONLINE PASS' : 'NAVRATRI 2026 • OFFLINE PASS RESERVATION'}
-              </p>
+      {/* ── 1. The Official Master Landscape Ticket (1.92:1) ── */}
+      <div className="vt-landscape-ticket-container">
+        <div id="virtualTicket" ref={ticketRef} className="vt-landscape-ticket">
+          {/* Base Artwork matching Sigma / Couple / Family */}
+          <img
+            src={passBgImage}
+            alt={`Raas~Rang 2026 ${ticket.passName} Ticket`}
+            className="vt-landscape-bg"
+            loading="eager"
+          />
+
+          {/* Left panel: Attendee Name & Booking ID in elegant type near the bottom strip */}
+          <div className="vt-attendee-strip">
+            <span className="vt-attendee-text">
+              ATTENDEE: {ticket.name.toUpperCase()} <span className="vt-diamond">✦</span> BOOKING ID: {ticket.ticketNo}
+            </span>
+          </div>
+
+          {/* Right stub: Cleanly replaces the price with white rounded QR tile + monospace ID */}
+          <div
+            className={`vt-stub-qr-tile-wrap theme-${ticket.passType.toLowerCase()}`}
+            style={{ backgroundColor: stubThemeColor }}
+          >
+            <div className="vt-stub-qr-tile">
+              {/* Gold corner accents */}
+              <span className="vt-corner-bracket corner-tl" />
+              <span className="vt-corner-bracket corner-tr" />
+              <span className="vt-corner-bracket corner-bl" />
+              <span className="vt-corner-bracket corner-br" />
+              <canvas ref={canvasRef} className="vt-stub-qr-canvas" />
             </div>
+            <div className="vt-stub-ticket-no">{ticket.ticketNo}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Attendee Pass Info & Collection Guidelines Sheet ── */}
+      <div className="vt-offline-sheet">
+        <div className="vt-sheet-header">
+          <div>
+            <h3 className="vt-sheet-title">
+              {isOnline ? 'Online Pass Confirmed' : 'Offline Reservation Confirmed'}
+            </h3>
+            <p className="vt-sheet-subtitle">
+              {isOnline
+                ? 'Your pass is confirmed. Show the QR code at event entrance gate.'
+                : 'Your wristband is reserved. Bring this ticket to Caha Gorakhpur to pay and collect.'}
+            </p>
           </div>
           <div
             className="vt-status-badge"
@@ -554,56 +358,37 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           </div>
         </div>
 
-        {/* Golden Ornamental Divider */}
-        <div className="vt-divider"></div>
-
-        {/* Ticket Number Highlight */}
-        <div className="vt-number-box">
-          <span className="vt-number-label">
-            {isOnline ? 'ONLINE PASS NUMBER' : 'OFFLINE RESERVATION NUMBER'}
-          </span>
-          <div className="vt-ticket-no">{ticket.ticketNo}</div>
-          <span className="vt-number-note">
-            {isOnline
-              ? 'Present this QR pass on your phone at event gate for admission'
-              : 'Bring this code to Caha Gorakhpur to collect physical wristbands'}
-          </span>
-        </div>
-
-        {/* Attendee & Pass Details Grid */}
-        <div className="vt-details-grid">
-          <div className="vt-detail-item">
+        <div className="vt-offline-grid">
+          <div className="vt-offline-item">
             <span className="vt-label">Attendee Name</span>
             <span className="vt-val highlight">{ticket.name}</span>
           </div>
 
-          <div className="vt-detail-item">
+          <div className="vt-offline-item">
             <span className="vt-label">Pass Category</span>
             <span className="vt-val">
-              {/entry|person/i.test(ticket.passName || '')
-                ? ticket.passName
-                : `${ticket.passName} (${ticket.persons} Entry)`}
+              {ticket.passName} ({ticket.persons} Entry{ticket.persons > 1 ? 's' : ''})
             </span>
           </div>
 
-          <div className="vt-detail-item">
-            <span className="vt-label">Mobile Number</span>
+          <div className="vt-offline-item">
+            <span className="vt-label">Registered Mobile</span>
             <span className="vt-val">{ticket.mobileMasked}</span>
           </div>
 
-          <div className="vt-detail-item">
+          <div className="vt-offline-item">
             <span className="vt-label">
               {isOnline ? 'Pass Amount' : 'Amount Payable at Spot'}
             </span>
             <span className="vt-val gold">₹{ticket.price}</span>
           </div>
 
-          <div className="vt-detail-item full-width">
+          <div className="vt-offline-item full-width">
             <span className="vt-label">
-              {isOnline ? 'Entry Gate & Venue' : 'Designated Collection Spot'}
+              {isOnline ? 'Event Gate & Venue' : 'Designated Collection Desk'}
             </span>
             <span className="vt-val spot-name">
-              📍 {isOnline ? 'Mahant Digvijaynath Park, Gorakhpur' : ticket.spot}
+              <IconMapPin size={16} /> {isOnline ? 'Mahant Digvijaynath Park, Gorakhpur' : ticket.spot}
             </span>
             <span className="vt-spot-address">
               {isOnline
@@ -611,49 +396,39 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
                 : ticket.spotAddress}
             </span>
             <span className="vt-spot-timings">
-              {isOnline
-                ? '🕒 Event Date: Saturday, 17 October 2026 · Gates Open 6:00 PM'
-                : `🕒 ${ticket.spotTimings} • 📞 ${ticket.spotContact}`}
+              {isOnline ? (
+                <><IconClock size={14} /> Saturday, 17 October 2026 • Gates open 6:00 PM</>
+              ) : (
+                <><IconClock size={14} /> {ticket.spotTimings} • <IconPhone size={14} /> {ticket.spotContact}</>
+              )}
             </span>
           </div>
         </div>
 
-        {/* QR Code Section */}
-        <div className="vt-qr-section">
-          <div className="vt-qr-container">
-            <canvas ref={canvasRef} className="vt-qr-canvas" />
-          </div>
-          <p className="vt-qr-caption">
+        <div className="vt-footer-notice">
+          <IconAlertTriangle size={16} />{' '}
+          <span>
+            {isOnline ? (
+              <strong>Important:</strong>
+            ) : (
+              <strong>Wristband Collection:</strong>
+            )}{' '}
             {isOnline
-              ? 'Scan at event entrance gate for direct verified entry'
-              : 'Scan at desk for wristband handover & verification'}
-          </p>
+              ? 'Please keep this pass or downloaded PNG handy on your phone on event night.'
+              : 'Show this reservation number along with a valid photo ID at Caha Gorakhpur to collect physical wristbands.'}
+          </span>
         </div>
 
-        {/* Footer Warning & Notice */}
-        <div className="vt-footer">
-          <p className="vt-notice">
-            {isOnline ? (
-              <>
-                ✨ <strong>Official Online Pass:</strong> Show this virtual QR ticket on your smartphone at the gate on 17 October 2026 for seamless entry.
-              </>
-            ) : (
-              <>
-                ⚠️ <strong>Important:</strong> Please show this reservation number along with a valid photo ID at <strong>Caha Gorakhpur (Kajakpur, Rail Vihar Colony Phase 3rd, Taramandal)</strong> to make payment and collect physical wristbands.
-              </>
-            )}
-          </p>
-          <div className="vt-event-info">
-            <span>📅 Saturday, 17 October 2026</span>
-            <span>📍 Mahant Digvijaynath Park, Gorakhpur</span>
-          </div>
+        <div className="vt-event-info">
+          <span><IconCalendar size={14} /> Saturday, 17 October 2026</span>
+          <span><IconMapPin size={14} /> Mahant Digvijaynath Park, Gorakhpur</span>
         </div>
       </div>
 
-      {/* Interactive Action Buttons */}
+      {/* ── 3. Interactive Action Buttons ── */}
       <div className="vt-actions-row">
         <button type="button" className="btn btn-outline vt-btn" onClick={handleCopyTicketNo}>
-          {copied ? '✓ Copied!' : '📋 Copy Ticket No'}
+          {copied ? <><IconCheck size={16} /> Copied!</> : <><IconCopy size={16} /> Copy Ticket No</>}
         </button>
 
         <button
@@ -662,7 +437,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           onClick={handleDownloadPng}
           disabled={downloadingPng}
         >
-          {downloadingPng ? 'Preparing PNG...' : '🖼️ Download PNG'}
+          {downloadingPng ? 'Generating 2x PNG...' : <><IconImage size={16} /> Download PNG (2x)</>}
         </button>
 
         <button
@@ -671,7 +446,7 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           onClick={handleDownloadPdf}
           disabled={downloadingPdf}
         >
-          {downloadingPdf ? 'Preparing PDF...' : '📄 Download PDF'}
+          {downloadingPdf ? 'Preparing PDF...' : <><IconFile size={16} /> Download PDF</>}
         </button>
 
         <a
@@ -680,11 +455,11 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
           rel="noopener noreferrer"
           className="btn btn-outline vt-btn whatsapp"
         >
-          💬 Share on WhatsApp
+          <IconMessageCircle size={16} /> Share on WhatsApp
         </a>
       </div>
 
-      {/* Switcher & Navigation Links */}
+      {/* ── 4. Switcher & Navigation Links ── */}
       <div className="vt-secondary-links">
         {onBookAnother && (
           <button type="button" className="vt-link-btn" onClick={onBookAnother}>

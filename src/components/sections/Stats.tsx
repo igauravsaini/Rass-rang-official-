@@ -67,15 +67,15 @@ export const Stats: React.FC = () => {
             isTriggered={isInView}
           />
           <StatCounterItem
-            target={200}
-            suffix="K+"
+            target={2}
+            suffix="M+"
             label="Regional Digital Reach"
             desc="Purvanchal digital ad campaign"
             delay="0.2s"
             isTriggered={isInView}
           />
           <StatCounterItem
-            target={65}
+            target={70}
             suffix="%"
             label="Youth & Professionals"
             desc="College students & young couples"

@@ -25,7 +25,7 @@ class Particle {
   opacity = 0;
   fadeSpeed = 0;
   growing = false;
-  color = FESTIVE_COLORS[0];
+  colorStr = '';
   canvasWidth: number;
   canvasHeight: number;
 
@@ -38,13 +38,14 @@ class Particle {
   reset() {
     this.x = Math.random() * this.canvasWidth;
     this.y = Math.random() * this.canvasHeight;
-    this.size = Math.random() * 2.5 + 0.5;
+    this.size = Math.random() * 2.2 + 0.6;
     this.speedX = (Math.random() - 0.5) * 0.3;
-    this.speedY = -Math.random() * 0.5 - 0.1;
-    this.opacity = Math.random() * 0.5 + 0.1;
+    this.speedY = -Math.random() * 0.45 - 0.1;
+    this.opacity = Math.random() * 0.45 + 0.1;
     this.fadeSpeed = Math.random() * 0.005 + 0.002;
     this.growing = Math.random() > 0.5;
-    this.color = FESTIVE_COLORS[Math.floor(Math.random() * FESTIVE_COLORS.length)];
+    const c = FESTIVE_COLORS[Math.floor(Math.random() * FESTIVE_COLORS.length)];
+    this.colorStr = `rgb(${c.r},${c.g},${c.b})`;
   }
 
   update() {
@@ -54,7 +55,7 @@ class Particle {
 
     if (this.growing) {
       this.opacity += this.fadeSpeed;
-      if (this.opacity >= 0.6) this.growing = false;
+      if (this.opacity >= 0.55) this.growing = false;
     } else {
       this.opacity -= this.fadeSpeed;
       if (this.opacity <= 0) this.reset();
@@ -67,19 +68,11 @@ class Particle {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.save();
     ctx.globalAlpha = this.opacity;
-    ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
-    // Only apply GPU-heavy shadowBlur on larger desktop viewports
-    if (this.canvasWidth >= 768) {
-      ctx.shadowBlur = this.size * 3;
-      ctx.shadowColor = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.4)`;
-    }
-
+    ctx.fillStyle = this.colorStr;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 }
 
@@ -94,7 +87,7 @@ export const ParticleCanvas: React.FC = () => {
       return;
     }
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animFrameId: number;
@@ -106,15 +99,19 @@ export const ParticleCanvas: React.FC = () => {
       canvas.height = window.innerHeight;
       const isMobile = canvas.width < 768;
       const count = isMobile
-        ? Math.min(Math.floor((canvas.width * canvas.height) / 25000), 35)
-        : Math.min(Math.floor((canvas.width * canvas.height) / 15000), 75);
+        ? Math.min(Math.floor((canvas.width * canvas.height) / 28000), 24)
+        : Math.min(Math.floor((canvas.width * canvas.height) / 18000), 48);
       particles = [];
       for (let i = 0; i < count; i++) {
         particles.push(new Particle(canvas.width, canvas.height));
       }
     };
 
-    resize();
+    const initTimer = setTimeout(() => {
+      resize();
+      animate();
+    }, 60);
+
     const handleResize = () => {
       if (resizeTimer) clearTimeout(resizeTimer);
       resizeTimer = setTimeout(resize, 150);
@@ -130,8 +127,6 @@ export const ParticleCanvas: React.FC = () => {
       animFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
-
     const handleVisibility = () => {
       if (document.hidden) {
         cancelAnimationFrame(animFrameId);
@@ -143,6 +138,7 @@ export const ParticleCanvas: React.FC = () => {
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
+      clearTimeout(initTimer);
       window.removeEventListener('resize', handleResize);
       if (resizeTimer) clearTimeout(resizeTimer);
       document.removeEventListener('visibilitychange', handleVisibility);
