@@ -502,8 +502,8 @@ input, textarea, select {
 
 .navbar.scrolled {
     background: rgba(10, 4, 18, 0.95);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255,45,120,0.15);
     padding: 10px 0;
     box-shadow: 0 4px 30px rgba(0,0,0,0.4), 0 1px 0 rgba(240,180,41,0.1);
@@ -558,8 +558,8 @@ input, textarea, select {
     position: fixed;
     inset: 0;
     background: rgba(6, 2, 13, 0.75);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     z-index: 999;
     opacity: 0;
     visibility: hidden;
@@ -1910,6 +1910,7 @@ input, textarea, select {
     transition: all var(--transition-smooth);
     position: relative;
     overflow: hidden;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -2404,6 +2405,7 @@ input, textarea, select {
     text-align: center;
     transition: all var(--transition-smooth);
     overflow: hidden;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     height: 100%;
     display: flex;
@@ -2558,6 +2560,7 @@ input, textarea, select {
     border-right: 1px solid rgba(217,167,58,0.2);
     color: var(--cream);
     font-size: 0.95rem;
+    -webkit-appearance: textfield;
     -moz-appearance: textfield;
     appearance: textfield;
 }
@@ -2565,6 +2568,8 @@ input, textarea, select {
 .qty-input::-webkit-inner-spin-button,
 .qty-input::-webkit-outer-spin-button {
     -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
 }
 
 .ticket-book-btn {
@@ -2752,6 +2757,7 @@ input, textarea, select {
     transition: all var(--transition-smooth);
     position: relative;
     overflow: hidden;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
@@ -3133,8 +3139,8 @@ input, textarea, select {
 
 .glass-card {
     background: rgba(217,167,58,0.04);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: var(--border-gold);
     border-radius: var(--radius-xl);
     padding: var(--space-2xl);
@@ -3494,8 +3500,8 @@ input, textarea, select {
         height: 100dvh;
         flex-direction: column;
         background: rgba(10, 4, 18, 0.98);
-        backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
         padding: calc(75px + env(safe-area-inset-top, 0px)) var(--space-lg) calc(var(--space-xl) + env(safe-area-inset-bottom, 0px));
         gap: var(--space-xs);
         transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
