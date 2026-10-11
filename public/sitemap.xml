@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://raasranggkp.netlify.app/</loc>
-    <lastmod>2026-10-02</lastmod>
+    <loc>https://raasranggkp.pages.dev/</loc>
+    <lastmod>2026-10-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://raasranggkp.pages.dev/assets/images/logo.jpg</image:loc>
+      <image:title>Raas~Rang Garba Nights 2026 Logo</image:title>
+      <image:caption>Purvanchal's Premier Navratri Cultural Showcase — Gorakhpur</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://raasranggkp.pages.dev/assets/images/hero-bg.webp</image:loc>
+      <image:title>Raas~Rang Garba Nights 2026 Mahant Digvijaynath Park Gorakhpur</image:title>
+      <image:caption>Grand festive celebration with DJ Daizy, traditional garba, and cultural performances</image:caption>
+    </image:image>
   </url>
 </urlset>

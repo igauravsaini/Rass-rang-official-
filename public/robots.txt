@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://raasranggkp.netlify.app/sitemap.xml
+Sitemap: https://raasranggkp.pages.dev/sitemap.xml
