@@ -7,60 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================== CINEMATIC PRELOADER & TEMPLE BELL HOOK ========================
     const preloader = document.getElementById('preloader');
 
-    // Gentle Temple Bell Sound Hook via Web Audio API
-    function playTempleBell() {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            const audioCtx = new AudioCtx();
-            
-            // Bell frequencies: Root (432Hz - sacred pitch), Octave, 5th, Major 10th
-            const partials = [
-                { freq: 432, gain: 0.15, decay: 3.8 },
-                { freq: 864, gain: 0.08, decay: 2.8 },
-                { freq: 1296, gain: 0.04, decay: 2.0 },
-                { freq: 2160, gain: 0.02, decay: 1.2 }
-            ];
-
-            const triggerBell = () => {
-                const now = audioCtx.currentTime;
-                partials.forEach(p => {
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(p.freq, now);
-
-                    // Soft strike attack & long resonant acoustic decay
-                    gainNode.gain.setValueAtTime(0.0001, now);
-                    gainNode.gain.exponentialRampToValueAtTime(p.gain, now + 0.03);
-                    gainNode.gain.exponentialRampToValueAtTime(0.00001, now + p.decay);
-
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    osc.start(now);
-                    osc.stop(now + p.decay);
-                });
-            };
-
-            if (audioCtx.state === 'suspended') {
-                const unlockAudio = () => {
-                    audioCtx.resume().then(() => triggerBell());
-                    window.removeEventListener('click', unlockAudio);
-                    window.removeEventListener('touchstart', unlockAudio);
-                };
-                window.addEventListener('click', unlockAudio);
-                window.addEventListener('touchstart', unlockAudio);
-            } else {
-                setTimeout(triggerBell, 400);
-            }
-        } catch (e) {
-            // Audio context restricted by browser policy
-        }
-    }
-
-    // Trigger temple bell
-    playTempleBell();
-
     // 3.5-second cinematic loading sequence before homepage appears
     window.addEventListener('load', () => {
         setTimeout(() => {

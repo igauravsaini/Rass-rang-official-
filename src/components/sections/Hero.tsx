@@ -246,9 +246,15 @@ export const Hero: React.FC = () => {
           <div className="logo-light-rays"></div>
           <div className="logo-ring-rotate"></div>
           <picture>
-            <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+            <source
+              srcSet="/assets/images/logo-180.webp 180w, /assets/images/logo-360.webp 360w"
+              sizes="(max-width: 768px) 110px, 130px"
+              type="image/webp"
+            />
             <img
               src="/assets/images/logo-360.webp"
+              srcSet="/assets/images/logo-180.webp 180w, /assets/images/logo-360.webp 360w"
+              sizes="(max-width: 768px) 110px, 130px"
               alt="Raas Rang Official Logo"
               className="hero-logo-img"
               width={130}

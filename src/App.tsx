@@ -1,9 +1,10 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
+﻿import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Preloader } from './components/effects/Preloader';
 import { ParticleCanvas } from './components/effects/ParticleCanvas';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { Hero } from './components/sections/Hero';
+import { Partners } from './components/sections/Partners';
 import { About } from './components/sections/About';
 import { Events } from './components/sections/Events';
 import { Stats } from './components/sections/Stats';
@@ -97,6 +98,7 @@ export const App: React.FC = () => {
       {/* Main Page Content */}
       <main id="main-content">
         <Hero />
+        <Partners />
         <About />
         <Events />
         <Stats />
@@ -126,3 +128,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

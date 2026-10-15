@@ -24,9 +24,11 @@
   </script>
 
   <!-- Preload Critical LCP Assets with Responsive Media Queries -->
-  <link rel="preload" as="image" href="/assets/images/hero-bg.webp" media="(min-width: 769px)" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/images/hero-bg.webp" media="(min-width: 1367px)" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/images/hero-bg-1280.webp" media="(min-width: 769px) and (max-width: 1366px)" fetchpriority="high">
   <link rel="preload" as="image" href="/assets/images/hero-bg-768.webp" media="(max-width: 768px)" fetchpriority="high">
-  <link rel="preload" as="image" href="/assets/images/logo-360.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/images/logo-180.webp" media="(max-width: 768px)" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/images/logo-360.webp" media="(min-width: 769px)" fetchpriority="high">
 
   <!-- Preload Critical Self-Hosted Fonts for 0ms First Paint & Zero Jitter -->
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/QGYvz_MVcBeNP4NJtEtq.woff2" crossorigin>

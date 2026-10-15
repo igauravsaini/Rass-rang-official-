@@ -715,6 +715,12 @@ input, textarea, select {
     will-change: transform;
 }
 
+@media (max-width: 1366px) {
+    .hero-bg-image {
+        background-image: url('/assets/images/hero-bg-1280.webp');
+    }
+}
+
 @media (max-width: 768px) {
     .hero-bg-image {
         background-image: url('/assets/images/hero-bg-768.webp');
@@ -1969,7 +1975,7 @@ input, textarea, select {
     content: '';
     position: absolute;
     inset: -10px;
-    background-image: url('/assets/images/events-section-bg.jpg');
+    background-image: url('/assets/images/events-section-bg.webp');
     background-size: cover;
     background-position: center 45%;
     background-repeat: no-repeat;

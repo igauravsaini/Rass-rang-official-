@@ -9,56 +9,6 @@ export const Preloader: React.FC = () => {
   useEffect(() => {
     if (alreadySeen) return;
 
-    // Gentle Temple Bell Sound Hook via Web Audio API (async, non-blocking)
-    const playTempleBell = () => {
-      try {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!AudioCtx) return;
-        const audioCtx = new AudioCtx();
-
-        const partials = [
-          { freq: 432, gain: 0.12, decay: 2.2 },
-          { freq: 864, gain: 0.06, decay: 1.5 },
-          { freq: 1296, gain: 0.03, decay: 1.0 },
-        ];
-
-        const triggerBell = () => {
-          const now = audioCtx.currentTime;
-          partials.forEach((p) => {
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(p.freq, now);
-
-            gainNode.gain.setValueAtTime(0.0001, now);
-            gainNode.gain.exponentialRampToValueAtTime(p.gain, now + 0.02);
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, now + p.decay);
-
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + p.decay);
-          });
-        };
-
-        if (audioCtx.state === 'suspended') {
-          const unlockAudio = () => {
-            audioCtx.resume().then(() => triggerBell());
-            window.removeEventListener('click', unlockAudio);
-            window.removeEventListener('touchstart', unlockAudio);
-          };
-          window.addEventListener('click', unlockAudio);
-          window.addEventListener('touchstart', unlockAudio);
-        } else {
-          setTimeout(triggerBell, 80);
-        }
-      } catch {
-        // Audio policy restricted
-      }
-    };
-
-    playTempleBell();
-
     const finishLoading = () => {
       setIsLoaded(true);
       try {
@@ -98,9 +48,15 @@ export const Preloader: React.FC = () => {
         </div>
         <div className="loader-logo-wrap">
           <picture>
-            <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+            <source
+              srcSet="/assets/images/logo-180.webp 180w, /assets/images/logo-360.webp 360w"
+              sizes="(max-width: 768px) 100px, 120px"
+              type="image/webp"
+            />
             <img
               src="/assets/images/logo-360.webp"
+              srcSet="/assets/images/logo-180.webp 180w, /assets/images/logo-360.webp 360w"
+              sizes="(max-width: 768px) 100px, 120px"
               alt="Raas Rang Official Emblem"
               className="loader-logo"
               width={120}

@@ -48,13 +48,13 @@ async function generateHighResTicketCanvas(ticket: VirtualTicketData): Promise<H
   if (!ctx) throw new Error('Could not create 2D canvas context');
 
   // Select background and theme by pass type
-  let bgSrc = '/assets/images/tickets/ticket-bg-sigma.jpg';
+  let bgSrc = '/assets/images/tickets/ticket-bg-sigma.webp';
   let stubBg = '#0c193c';
   if (ticket.passType === 'COUPLE') {
-    bgSrc = '/assets/images/tickets/ticket-bg-couple.jpg';
+    bgSrc = '/assets/images/tickets/ticket-bg-couple.webp';
     stubBg = '#240510';
   } else if (ticket.passType === 'FAMILY') {
-    bgSrc = '/assets/images/tickets/ticket-bg-family.jpg';
+    bgSrc = '/assets/images/tickets/ticket-bg-family.webp';
     stubBg = '#041a14';
   }
 
@@ -284,10 +284,10 @@ export const VirtualTicket: React.FC<VirtualTicketProps> = ({ ticket, onBookAnot
 
   const passBgImage =
     ticket.passType === 'COUPLE'
-      ? '/assets/images/tickets/ticket-bg-couple.jpg'
+      ? '/assets/images/tickets/ticket-bg-couple.webp'
       : ticket.passType === 'FAMILY'
-      ? '/assets/images/tickets/ticket-bg-family.jpg'
-      : '/assets/images/tickets/ticket-bg-sigma.jpg';
+      ? '/assets/images/tickets/ticket-bg-family.webp'
+      : '/assets/images/tickets/ticket-bg-sigma.webp';
 
   const stubThemeColor =
     ticket.passType === 'COUPLE'

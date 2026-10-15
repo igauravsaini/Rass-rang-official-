@@ -90,7 +90,7 @@ body.booking-overlay-active #main-nav {
       rgba(8, 2, 16, 0.94) 70%, 
       rgba(5, 1, 12, 0.98) 100%
     ),
-    url('/assets/images/ticket-window-bg.jpg');
+    url('/assets/images/ticket-window-bg.webp');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;

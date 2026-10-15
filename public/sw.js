@@ -2,15 +2,17 @@
 // RAAS~RANG GARBA NIGHTS 2026 — SERVICE WORKER (CACHE-FIRST ENGINE)
 // ==============================================================================
 
-const CACHE_NAME = 'raasrang-cache-v3';
+const CACHE_NAME = 'raasrang-cache-v4';
 
 // Static core assets to pre-cache on install
 const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/assets/images/logo-180.webp',
   '/assets/images/logo-360.webp',
   '/assets/images/hero-bg.webp',
+  '/assets/images/hero-bg-1280.webp',
   '/assets/images/hero-bg-768.webp',
   '/assets/fonts/QGYvz_MVcBeNP4NJtEtq.woff2',
   '/assets/fonts/daaHSScvJGqLYhG8nNt8KPPswUAPniZoadlESTE.woff2',

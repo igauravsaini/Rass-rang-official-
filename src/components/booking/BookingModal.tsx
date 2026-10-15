@@ -743,7 +743,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   {/* Centered 3rd image event banner with glow */}
                   <div className="bms-online-banner-wrap">
                     <img
-                      src="/assets/images/online-ticket-banner.jpg"
+                      src="/assets/images/online-ticket-banner.webp"
                       alt="Raas~Rang Garba Nights 2026 - DJ Saifu & DJ Daisy"
                       className="bms-online-banner-img"
                       width={880}

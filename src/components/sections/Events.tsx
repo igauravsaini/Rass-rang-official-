@@ -26,15 +26,22 @@ export const Events: React.FC = () => {
               <Card3D className="event-card" maxTilt={8} scale={1.02}>
                 <div className="event-card-glow"></div>
                 <div className="event-card-media">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="event-card-bg-img"
-                    width={800}
-                    height={950}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <picture>
+                    <source
+                      type="image/webp"
+                      srcSet={`${event.image.replace('-bg.webp', '-card.webp')} 550w, ${event.image} 800w`}
+                      sizes="(max-width: 640px) 360px, (max-width: 1100px) 50vw, 340px"
+                    />
+                    <img
+                      src={event.image.replace('-bg.webp', '-card.webp')}
+                      alt={event.title}
+                      className="event-card-bg-img"
+                      width={550}
+                      height={652}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </picture>
                   <div className="event-card-content">
                     <h3 className="event-card-title">{event.title}</h3>
                     <div className="event-card-divider" aria-hidden="true">

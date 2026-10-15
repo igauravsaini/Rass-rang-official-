@@ -66,9 +66,9 @@ export const Navbar: React.FC = () => {
           >
             <div className="nav-logo-wrap">
               <picture>
-                <source srcSet="/assets/images/logo-360.webp" type="image/webp" />
+                <source srcSet="/assets/images/logo-180.webp" type="image/webp" />
                 <img
-                  src="/assets/images/logo-360.webp"
+                  src="/assets/images/logo-180.webp"
                   alt="Raas Rang Logo"
                   className="nav-logo-img"
                   width={45}
